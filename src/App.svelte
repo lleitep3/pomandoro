@@ -1,11 +1,12 @@
 <script lang="ts">
   import PomodoroTimer from './lib/components/PomodoroTimer.svelte'
   import TodoList from './lib/components/TodoList.svelte'
+  import logo from './assets/icon.svg'
 </script>
 
 <header class="navbar">
   <div class="logo">
-    <img src="/pomandoro/assets/logo.svg" alt="PoMandoro" />
+    <img src={logo} alt="PoMandoro" />
     <span>PoMandoro</span>
   </div>
 </header>
