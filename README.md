@@ -2,6 +2,8 @@
 
 App Pomodoro de exemplo para testes, labs e estudos.
 
+🌍 **Live Demo:** [https://lleitep3.github.io/pomandoro/](https://lleitep3.github.io/pomandoro/)
+
 Este projeto foi recentemente reescrito utilizando tecnologias modernas para ser um modelo ideal de arquitetura escalável e bem testada no frontend.
 
 ## 🚀 Stack Tecnológica
