@@ -138,10 +138,8 @@
   }
 
   .mini-timer-wrap {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
     animation: fadeIn 0.3s ease;
   }
 
@@ -173,6 +171,10 @@
   }
 
   .mini-task {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
     font-size: 0.85rem;
     color: var(--text-muted);
     max-width: 200px;
