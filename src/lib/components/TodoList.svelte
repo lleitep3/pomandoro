@@ -95,6 +95,16 @@
       pomodoro.start()
     }
   }
+
+  function getTaskFraction(task: Task) {
+    if (todos.activeTaskId === task.id && pomodoro.mode === 'work') {
+      return 1 - pomodoro.progress
+    } else if (task.timerMode === 'work' && task.timerRemaining !== undefined) {
+      const total = 25 * 60
+      return 1 - (task.timerRemaining / total)
+    }
+    return 0
+  }
 </script>
 
 <div class="todo-panel">
@@ -158,9 +168,18 @@
             <span class="task-title" ondblclick={() => startEdit(task)} title="Duplo clique para editar">{task.title}</span>
           {/if}
 
-          <span class="tomatoes" title="{task.pomodoros} pomodoros">
+          <span
+            class="tomatoes"
+            title="{task.pomodoros} pomodoros concluídos{getTaskFraction(task) > 0 ? ` e ${Math.round(getTaskFraction(task) * 100)}% de um em andamento` : ''}"
+          >
             {#if task.pomodoros > 0}
               {'🍅'.repeat(Math.min(task.pomodoros, 8))}{task.pomodoros > 8 ? ` ×${task.pomodoros}` : ''}
+            {/if}
+            {#if getTaskFraction(task) > 0 && task.pomodoros <= 8}
+              <span class="tomato-fraction">
+                <span class="tomato-bg">🍅</span>
+                <span class="tomato-fg" style="width: {getTaskFraction(task) * 100}%;">🍅</span>
+              </span>
             {/if}
           </span>
 
@@ -370,4 +389,19 @@
   .priority-dot.low { background: #3b82f6; }
   .priority-dot.medium { background: #eab308; }
   .priority-dot.high { background: #ef4444; }
+
+  .tomato-fraction {
+    position: relative;
+    display: inline-block;
+  }
+  .tomato-bg {
+    opacity: 0.3;
+  }
+  .tomato-fg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
 </style>
