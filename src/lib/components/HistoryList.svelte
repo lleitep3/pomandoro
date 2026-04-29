@@ -29,18 +29,24 @@
   {:else}
     <ul class="history-list">
       {#each history.entries as entry (entry.id)}
-        <li class="history-item">
+        <li class="history-item" class:play-event={entry.type === 'play'}>
           <div class="history-main">
-            <span class="mode-badge" class:work={entry.mode === 'work'}>
-              {getModeLabel(entry.mode)}
-            </span>
+            {#if entry.type === 'play'}
+              <span class="mode-badge play">▶ Início</span>
+            {:else}
+              <span class="mode-badge" class:work={entry.mode === 'work'}>
+                {getModeLabel(entry.mode)}
+              </span>
+            {/if}
             <span class="task-title">
               {entry.taskTitle || 'Sem tarefa selecionada'}
             </span>
           </div>
           <div class="history-meta">
-            <span>{Math.round(entry.duration / 60)} min</span>
-            <span class="dot">•</span>
+            {#if entry.type !== 'play'}
+              <span>{Math.round((entry.duration || 0) / 60)} min</span>
+              <span class="dot">•</span>
+            {/if}
             <span>{formatDate(entry.completedAt)} {formatTime(entry.completedAt)}</span>
           </div>
         </li>
@@ -113,6 +119,11 @@
     border-left: 3px solid var(--border);
   }
 
+  .history-item.play-event {
+    border-left-color: #3b82f6; /* Blueish to differentiate */
+    background: transparent;
+  }
+
   .history-main {
     display: flex;
     align-items: center;
@@ -131,6 +142,12 @@
   .mode-badge.work {
     background: var(--accent);
     color: #fff;
+  }
+
+  .mode-badge.play {
+    background: transparent;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
   }
 
   .task-title {

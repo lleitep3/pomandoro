@@ -15,6 +15,7 @@ export interface HistoryEntry {
   taskId: string | null
   taskTitle: string | null
   mode: TimerMode
-  duration: number
+  duration?: number
   completedAt: number
+  type?: 'session' | 'play'
 }

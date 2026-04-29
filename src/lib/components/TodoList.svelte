@@ -1,6 +1,6 @@
-<script lang="ts">
   import { todos } from '../stores/todos.svelte'
   import { pomodoro } from '../stores/pomodoro.svelte'
+  import { history } from '../stores/history.svelte'
   import type { Task } from '../types'
 
   let newTitle = $state('')
@@ -77,7 +77,15 @@
   function toggleTaskTimer(id: string) {
     if (todos.activeTaskId === id) {
       if (pomodoro.running) pomodoro.pause()
-      else pomodoro.start()
+      else {
+        history.addEntry({
+          taskId: id,
+          taskTitle: todos.tasks.find(t => t.id === id)?.title || null,
+          mode: pomodoro.mode,
+          type: 'play'
+        })
+        pomodoro.start()
+      }
     } else {
       if (pomodoro.running) pomodoro.pause()
       else if (todos.activeTaskId) {
@@ -92,6 +100,14 @@
       } else {
         pomodoro.setMode('work')
       }
+      
+      history.addEntry({
+        taskId: id,
+        taskTitle: newTask?.title || null,
+        mode: pomodoro.mode,
+        type: 'play'
+      })
+      
       pomodoro.start()
     }
   }

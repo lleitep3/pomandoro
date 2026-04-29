@@ -1,6 +1,7 @@
 <script lang="ts">
   import { pomodoro } from '../stores/pomodoro.svelte'
   import { todos } from '../stores/todos.svelte'
+  import { history } from '../stores/history.svelte'
   import type { TimerMode } from '../types'
 
   const SIZE = 240
@@ -66,7 +67,17 @@
     {#if pomodoro.running}
       <button class="btn btn-secondary" onclick={() => pomodoro.pause()}>Pausar</button>
     {:else}
-      <button class="btn btn-primary" onclick={() => pomodoro.start()}>Iniciar</button>
+      <button class="btn btn-primary" onclick={() => {
+        if (todos.activeTask) {
+          history.addEntry({
+            taskId: todos.activeTask.id,
+            taskTitle: todos.activeTask.title,
+            mode: pomodoro.mode,
+            type: 'play'
+          })
+        }
+        pomodoro.start()
+      }}>Iniciar</button>
     {/if}
     <button class="btn btn-ghost" onclick={() => pomodoro.reset()}>Reiniciar</button>
   </div>
