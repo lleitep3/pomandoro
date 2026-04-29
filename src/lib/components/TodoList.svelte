@@ -1,3 +1,4 @@
+<script lang="ts">
   import { todos } from '../stores/todos.svelte'
   import { pomodoro } from '../stores/pomodoro.svelte'
   import { history } from '../stores/history.svelte'
