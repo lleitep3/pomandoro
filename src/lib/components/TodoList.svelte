@@ -13,10 +13,15 @@
     if (e.key === 'Enter') handleAdd()
   }
 
-  function playTask(id: string) {
-    todos.selectTask(id)
-    pomodoro.setMode('work')
-    pomodoro.start()
+  function toggleTaskTimer(id: string) {
+    if (todos.activeTaskId === id) {
+      if (pomodoro.running) pomodoro.pause()
+      else pomodoro.start()
+    } else {
+      todos.selectTask(id)
+      pomodoro.setMode('work')
+      pomodoro.start()
+    }
   }
 </script>
 
@@ -63,10 +68,10 @@
           <button
             class="btn-play"
             class:selected={todos.activeTaskId === task.id}
-            aria-label="Iniciar pomodoro nesta tarefa"
-            onclick={() => playTask(task.id)}
-            title="Iniciar pomodoro"
-          >▶</button>
+            aria-label={todos.activeTaskId === task.id && pomodoro.running ? 'Pausar pomodoro' : 'Iniciar pomodoro'}
+            onclick={() => toggleTaskTimer(task.id)}
+            title={todos.activeTaskId === task.id && pomodoro.running ? 'Pausar pomodoro' : 'Iniciar pomodoro'}
+          >{todos.activeTaskId === task.id && pomodoro.running ? '⏸' : '▶'}</button>
 
           <button
             class="btn-remove"
