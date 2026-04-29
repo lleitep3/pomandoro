@@ -1,71 +1,77 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from "@playwright/test";
 
-test.describe('Todo List', () => {
+test.describe("Todo List", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-  })
+    await page.goto("/");
+  });
 
-  test('should add a new task', async ({ page }) => {
-    const input = page.locator('input[placeholder*="tarefa"], input[placeholder*="task"]').first()
-    const addBtn = page.locator('button:has-text("Adicionar")').first()
+  test("should add a new task", async ({ page }) => {
+    const input = page.locator(".task-input");
+    const addBtn = page.locator(".btn-add");
 
-    await input.fill('Test task')
-    await addBtn.click()
+    await input.fill("Test task");
+    await addBtn.click();
 
-    const task = page.locator('text=Test task')
-    await expect(task).toBeVisible()
-  })
+    const task = page.locator('.task-title:has-text("Test task")');
+    await expect(task).toBeVisible();
+  });
 
-  test('should not add empty task', async ({ page }) => {
-    const addBtn = page.locator('button:has-text("Adicionar")').first()
-    const taskList = page.locator('.task-list, [data-testid="task-list"]').first()
+  test("should not add empty task", async ({ page }) => {
+    const addBtn = page.locator(".btn-add");
+    const emptyMessage = page.locator(".empty");
 
-    const countBefore = await taskList.locator('> *').count()
-    await addBtn.click()
-    const countAfter = await taskList.locator('> *').count()
+    // Botão deve estar desabilitado quando input está vazio
+    await expect(addBtn).toBeDisabled();
 
-    expect(countAfter).toBe(countBefore)
-  })
+    // Mensagem de vazio deve continuar visível
+    await expect(emptyMessage).toBeVisible();
+  });
 
-  test('should toggle task completion', async ({ page }) => {
-    const input = page.locator('input[placeholder*="tarefa"], input[placeholder*="task"]').first()
-    const addBtn = page.locator('button:has-text("Adicionar")').first()
+  test("should toggle task completion", async ({ page }) => {
+    const input = page.locator(".task-input");
+    const addBtn = page.locator(".btn-add");
 
-    await input.fill('Task to complete')
-    await addBtn.click()
+    await input.fill("Task to complete");
+    await addBtn.click();
 
-    const checkbox = page.locator('input[type="checkbox"]').first()
-    await checkbox.click()
+    const checkBtn = page.locator(".check").first();
+    await checkBtn.click();
 
-    const task = page.locator('text=Task to complete')
-    await expect(task).toHaveClass(/done|completed|strike/)
-  })
+    const taskItem = page.locator(".task-item.done");
+    await expect(taskItem).toBeVisible();
+    await expect(taskItem).toContainText("Task to complete");
+  });
 
-  test('should delete a task', async ({ page }) => {
-    const input = page.locator('input[placeholder*="tarefa"], input[placeholder*="task"]').first()
-    const addBtn = page.locator('button:has-text("Adicionar")').first()
+  test("should delete a task", async ({ page }) => {
+    const input = page.locator(".task-input");
+    const addBtn = page.locator(".btn-add");
 
-    await input.fill('Task to delete')
-    await addBtn.click()
+    await input.fill("Task to delete");
+    await addBtn.click();
 
-    const deleteBtn = page.locator('button:has-text("Deletar"), button:has-text("Excluir"), button[aria-label*="delete"], button[aria-label*="excluir"]').first()
-    await deleteBtn.click()
+    const deleteBtn = page.locator(".btn-remove").first();
+    await deleteBtn.click();
 
-    const task = page.locator('text=Task to delete')
-    await expect(task).not.toBeVisible()
-  })
+    const task = page.locator('.task-title:has-text("Task to delete")');
+    await expect(task).not.toBeVisible();
+  });
 
-  test('should select a task for pomodoro', async ({ page }) => {
-    const input = page.locator('input[placeholder*="tarefa"], input[placeholder*="task"]').first()
-    const addBtn = page.locator('button:has-text("Adicionar")').first()
+  test("should select a task for pomodoro", async ({ page }) => {
+    const input = page.locator(".task-input");
+    const addBtn = page.locator(".btn-add");
 
-    await input.fill('Active task')
-    await addBtn.click()
+    await input.fill("Active task");
+    await addBtn.click();
 
-    const taskRow = page.locator('text=Active task').locator('..').first()
-    await taskRow.click()
+    // Click no botão play da tarefa
+    const playBtn = page.locator(".btn-play").first();
+    await playBtn.click();
 
-    const selected = page.locator('.selected, [data-selected="true"]').first()
-    await expect(selected).toContainText('Active task')
-  })
-})
+    // Verifica se o botão play tem a classe 'selected'
+    await expect(playBtn).toHaveClass(/selected/);
+
+    // Verifica se o timer iniciou (botão Pausar visível)
+    const pauseBtn = page.locator('button:has-text("Pausar")');
+    await expect(pauseBtn).toBeVisible();
+  });
+});
