@@ -63,3 +63,15 @@ dist/
 # Svelte
 .svelte-kit/
 
+# Test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+*.spec.ts-snapshots/
+coverage/
+.vitest/
+*.lcov
+
+# Husky generated
+.husky/_/
+
