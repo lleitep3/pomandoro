@@ -105,6 +105,13 @@
     }
     return 0
   }
+
+  function getTotalElapsedMinutes(task: Task) {
+    const fullMinutes = task.pomodoros * 25
+    const partialFraction = getTaskFraction(task)
+    const partialMinutes = partialFraction * 25
+    return Math.round(fullMinutes + partialMinutes)
+  }
 </script>
 
 <div class="todo-panel">
@@ -170,7 +177,7 @@
 
           <span
             class="tomatoes"
-            title="{task.pomodoros} pomodoros concluídos{getTaskFraction(task) > 0 ? ` e ${Math.round(getTaskFraction(task) * 100)}% de um em andamento` : ''}"
+            title="{task.pomodoros} pomodoros concluídos{getTaskFraction(task) > 0 ? ` e ${Math.round(getTaskFraction(task) * 100)}% de um em andamento` : ''} (Tempo total: {getTotalElapsedMinutes(task)} min)"
           >
             {#if task.pomodoros > 0}
               {'🍅'.repeat(Math.min(task.pomodoros, 8))}{task.pomodoros > 8 ? ` ×${task.pomodoros}` : ''}
@@ -300,7 +307,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: var(--text-muted);
     width: 24px;
     flex-shrink: 0;
@@ -331,19 +338,26 @@
   }
 
   .tomatoes {
-    font-size: 0.75rem;
+    font-size: 1.1rem;
     flex-shrink: 0;
-    max-width: 120px;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    transition: transform 0.2s, filter 0.2s;
+    cursor: help;
+  }
+
+  .tomatoes:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 4px rgba(233, 69, 96, 0.4));
   }
 
   .btn-play {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 1.1rem;
     color: var(--text-muted);
     flex-shrink: 0;
     padding: 2px 6px;
@@ -361,7 +375,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: var(--text-muted);
     flex-shrink: 0;
     padding: 2px 4px;
@@ -374,8 +388,8 @@
   }
 
   .priority-dot {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     border: none;
     cursor: pointer;
