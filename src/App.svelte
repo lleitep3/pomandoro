@@ -34,7 +34,7 @@
         </div>
       </div>
       {#if todos.activeTask}
-        <div class="mini-task">{todos.activeTask.title}</div>
+        <div class="mini-task" title={todos.activeTask.title}>{todos.activeTask.title}</div>
       {/if}
     </div>
   {/if}
@@ -83,9 +83,10 @@
     top: 0;
     z-index: 100;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     min-height: 57px;
+    transition: min-height 0.2s;
   }
 
   .logo {
@@ -95,6 +96,7 @@
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--accent);
+    height: 28px;
   }
 
   .logo img {
@@ -138,8 +140,10 @@
   }
 
   .mini-timer-wrap {
-    position: relative;
     display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
     animation: fadeIn 0.3s ease;
   }
 
@@ -171,10 +175,6 @@
   }
 
   .mini-task {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 4px;
     font-size: 0.85rem;
     color: var(--text-muted);
     max-width: 200px;
