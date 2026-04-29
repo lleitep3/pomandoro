@@ -175,8 +175,9 @@ main                    # Produção (deploy automático)
    - `feature/task-priority`
    - `fix/timer-reset-bug`
    - `chore/upgrade-svelte`
-3. **PR obrigatório** para merge na `main`
-4. **Delete branch** após merge
+3. **Separação de Escopos**: Nunca misture escopos diferentes (ex: `docs` e `ci`) na mesma branch/PR. O fluxo correto é criar uma branch separada para cada finalidade a partir da `main`.
+4. **PR obrigatório** para merge na `main`
+5. **Delete branch** após merge
 
 ### Antes de Criar PR
 
