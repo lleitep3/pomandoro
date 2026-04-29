@@ -24,9 +24,6 @@
   </div>
   {#if scrollY > 150}
     <div class="mini-timer-wrap">
-      {#if todos.activeTask}
-        <div class="mini-task">{todos.activeTask.title}</div>
-      {/if}
       <div 
         class="mini-timer"
         style="background: linear-gradient(to right, var(--accent) {(1 - pomodoro.progress) * 100}%, var(--surface-hover) {(1 - pomodoro.progress) * 100}%);"
@@ -36,6 +33,9 @@
           <span class="mini-mode">{modeLabels[pomodoro.mode]}</span>
         </div>
       </div>
+      {#if todos.activeTask}
+        <div class="mini-task">{todos.activeTask.title}</div>
+      {/if}
     </div>
   {/if}
 </header>
@@ -139,9 +139,9 @@
 
   .mini-timer-wrap {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
     animation: fadeIn 0.3s ease;
   }
 
