@@ -108,8 +108,8 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-  build-check:
-    name: Build Check
+  lint:
+    name: Lint & Type Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -121,6 +121,21 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build
+      - name: Type check with svelte-check
+        run: npm run check
 
-      - run: npm run check
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [ lint, unit-tests ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run build
