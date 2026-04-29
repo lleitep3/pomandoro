@@ -24,10 +24,10 @@ function createTodosStore() {
     get activeTaskId() { return activeTaskId },
     get activeTask() { return tasks.find(t => t.id === activeTaskId) ?? null },
 
-    addTask(title: string) {
+    addTask(title: string, priority: 'low' | 'medium' | 'high' = 'medium') {
       const trimmed = title.trim()
       if (!trimmed) return
-      tasks = [...tasks, { id: crypto.randomUUID(), title: trimmed, pomodoros: 0, done: false }]
+      tasks = [...tasks, { id: crypto.randomUUID(), title: trimmed, pomodoros: 0, done: false, priority }]
       save(tasks)
     },
 
@@ -39,6 +39,27 @@ function createTodosStore() {
 
     toggleDone(id: string) {
       tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t)
+      save(tasks)
+    },
+
+    editTask(id: string, newTitle: string) {
+      const trimmed = newTitle.trim()
+      if (!trimmed) return
+      tasks = tasks.map(t => t.id === id ? { ...t, title: trimmed } : t)
+      save(tasks)
+    },
+
+    setPriority(id: string, priority: 'low' | 'medium' | 'high') {
+      tasks = tasks.map(t => t.id === id ? { ...t, priority } : t)
+      save(tasks)
+    },
+
+    reorderTasks(oldIndex: number, newIndex: number) {
+      if (oldIndex < 0 || oldIndex >= tasks.length || newIndex < 0 || newIndex >= tasks.length) return
+      const newTasks = [...tasks]
+      const [moved] = newTasks.splice(oldIndex, 1)
+      newTasks.splice(newIndex, 0, moved)
+      tasks = newTasks
       save(tasks)
     },
 

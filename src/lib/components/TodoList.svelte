@@ -1,12 +1,73 @@
 <script lang="ts">
   import { todos } from '../stores/todos.svelte'
   import { pomodoro } from '../stores/pomodoro.svelte'
+  import type { Task } from '../types'
 
   let newTitle = $state('')
+  let editingId = $state<string | null>(null)
+  let editTitle = $state('')
+
+  function startEdit(task: Task) {
+    editingId = task.id
+    editTitle = task.title
+  }
+
+  function saveEdit() {
+    if (editingId) {
+      todos.editTask(editingId, editTitle)
+      editingId = null
+    }
+  }
+
+  function handleEditKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') saveEdit()
+    if (e.key === 'Escape') editingId = null
+  }
+
+  let newPriority = $state<'low' | 'medium' | 'high'>('medium')
+  
+  function cycleNewPriority() {
+    const priorities: ('low' | 'medium' | 'high')[] = ['low', 'medium', 'high']
+    const currentIdx = priorities.indexOf(newPriority)
+    newPriority = priorities[(currentIdx + 1) % priorities.length]
+  }
+
+  let draggedIndex = $state<number | null>(null)
+
+  function handleDragStart(e: DragEvent, index: number) {
+    draggedIndex = index
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move'
+      e.dataTransfer.setData('text/plain', index.toString())
+    }
+  }
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault()
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move'
+    }
+  }
+
+  function handleDrop(e: DragEvent, dropIndex: number) {
+    e.preventDefault()
+    if (draggedIndex !== null && draggedIndex !== dropIndex) {
+      todos.reorderTasks(draggedIndex, dropIndex)
+    }
+    draggedIndex = null
+  }
+
+  function cyclePriority(task: Task) {
+    const priorities: ('low' | 'medium' | 'high')[] = ['low', 'medium', 'high']
+    const currentIdx = priorities.indexOf(task.priority || 'medium')
+    const nextIdx = (currentIdx + 1) % priorities.length
+    todos.setPriority(task.id, priorities[nextIdx])
+  }
 
   function handleAdd() {
-    todos.addTask(newTitle)
+    todos.addTask(newTitle, newPriority)
     newTitle = ''
+    newPriority = 'medium'
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -29,6 +90,12 @@
   <h2 class="todo-heading">Tarefas</h2>
 
   <div class="add-row">
+    <button
+      class="priority-dot {newPriority}"
+      aria-label="Prioridade da nova tarefa"
+      onclick={cycleNewPriority}
+      title="Prioridade: {newPriority === 'high' ? 'Alta' : newPriority === 'low' ? 'Baixa' : 'Média'}"
+    ></button>
     <input
       class="task-input"
       type="text"
@@ -43,11 +110,15 @@
     <p class="empty">Nenhuma tarefa. Adicione uma acima!</p>
   {:else}
     <ul class="task-list">
-      {#each todos.tasks as task (task.id)}
+      {#each todos.tasks as task, i (task.id)}
         <li
           class="task-item"
           class:active={todos.activeTaskId === task.id}
           class:done={task.done}
+          draggable="true"
+          ondragstart={(e) => handleDragStart(e, i)}
+          ondragover={handleDragOver}
+          ondrop={(e) => handleDrop(e, i)}
         >
           <button
             class="check"
@@ -57,7 +128,24 @@
             {task.done ? '✓' : '○'}
           </button>
 
-          <span class="task-title">{task.title}</span>
+          <button
+            class="priority-dot {task.priority || 'medium'}"
+            aria-label="Alterar prioridade"
+            onclick={() => cyclePriority(task)}
+            title="Prioridade: {task.priority === 'high' ? 'Alta' : task.priority === 'low' ? 'Baixa' : 'Média'}"
+          ></button>
+
+          {#if editingId === task.id}
+            <input
+              class="task-edit-input"
+              bind:value={editTitle}
+              onkeydown={handleEditKeydown}
+              onblur={saveEdit}
+              autofocus
+            />
+          {:else}
+            <span class="task-title" ondblclick={() => startEdit(task)} title="Duplo clique para editar">{task.title}</span>
+          {/if}
 
           <span class="tomatoes" title="{task.pomodoros} pomodoros">
             {#if task.pomodoros > 0}
@@ -103,6 +191,7 @@
   .add-row {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
   }
 
   .task-input {
@@ -197,6 +286,18 @@
     font-size: 0.9rem;
     color: var(--text);
     word-break: break-word;
+    cursor: text;
+  }
+
+  .task-edit-input {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 2px 6px;
+    outline: none;
   }
 
   .tomatoes {
@@ -241,4 +342,21 @@
   .btn-remove:hover {
     color: #e05;
   }
+
+  .priority-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .priority-dot:hover {
+    transform: scale(1.2);
+  }
+  .priority-dot.low { background: #3b82f6; }
+  .priority-dot.medium { background: #eab308; }
+  .priority-dot.high { background: #ef4444; }
 </style>
