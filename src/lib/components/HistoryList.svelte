@@ -58,7 +58,6 @@
     min-width: 320px;
     background: var(--surface);
     border-radius: 8px;
-    margin: 2rem;
   }
 
   .history-header {

@@ -31,7 +31,7 @@
   </div>
 
   <div class="clock-wrap">
-    <svg width={SIZE} height={SIZE} viewBox="0 0 {SIZE} {SIZE}">
+    <svg class="clock-svg" viewBox="0 0 {SIZE} {SIZE}">
       <circle
         cx={SIZE / 2}
         cy={SIZE / 2}
@@ -117,6 +117,12 @@
     justify-content: center;
   }
 
+  .clock-svg {
+    width: 240px;
+    height: 240px;
+    max-width: 100%;
+  }
+
   .clock-label {
     position: absolute;
     display: flex;
@@ -183,5 +189,19 @@
     font-size: 0.85rem;
     color: var(--text-muted);
     margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .timer-panel {
+      padding: 1rem;
+      gap: 1rem;
+    }
+    .clock-svg {
+      width: 200px;
+      height: 200px;
+    }
+    .time {
+      font-size: 2.5rem;
+    }
   }
 </style>

@@ -7,6 +7,8 @@
   import logo from './assets/icon.svg'
 
   let scrollY = $state(0)
+  let zenMode = $state(false)
+  let showHistory = $state(false)
 
   const modeLabels = {
     'work': 'Foco',
@@ -17,39 +19,63 @@
 
 <svelte:window bind:scrollY />
 
-<header class="navbar">
-  <div class="logo">
-    <img src={logo} alt="PoMandoro" />
-    <span>PoMandoro</span>
-  </div>
-  {#if scrollY > 150}
-    <div class="mini-timer-wrap">
-      <div 
-        class="mini-timer"
-        style="background: linear-gradient(to right, var(--accent) {(1 - pomodoro.progress) * 100}%, var(--surface-hover) {(1 - pomodoro.progress) * 100}%);"
-      >
-        <div class="mini-timer-content">
-          <span class="mini-time">{pomodoro.label}</span>
-          <span class="mini-mode">{modeLabels[pomodoro.mode]}</span>
+{#if !zenMode}
+  <header class="navbar">
+    <div class="logo">
+      <img src={logo} alt="PoMandoro" />
+      <span>PoMandoro</span>
+    </div>
+    <div class="nav-right">
+      {#if scrollY > 150}
+        <div class="mini-timer-wrap">
+          <div 
+            class="mini-timer"
+            style="background: linear-gradient(to right, var(--accent) {(1 - pomodoro.progress) * 100}%, var(--surface-hover) {(1 - pomodoro.progress) * 100}%);"
+          >
+            <div class="mini-timer-content">
+              <span class="mini-time">{pomodoro.label}</span>
+              <span class="mini-mode">{modeLabels[pomodoro.mode]}</span>
+            </div>
+          </div>
+          {#if todos.activeTask}
+            <div class="mini-task" title={todos.activeTask.title}>{todos.activeTask.title}</div>
+          {/if}
         </div>
-      </div>
-      {#if todos.activeTask}
-        <div class="mini-task" title={todos.activeTask.title}>{todos.activeTask.title}</div>
+      {:else}
+        <div class="nav-actions">
+          <button class="nav-btn" onclick={() => showHistory = true}>Histórico</button>
+          <button class="nav-btn" onclick={() => zenMode = true}>Zen Mode</button>
+        </div>
       {/if}
     </div>
-  {/if}
-</header>
+  </header>
 
-<main class="layout">
-  <section class="timer-section">
+  <main class="layout">
+    <section class="timer-section">
+      <PomodoroTimer />
+    </section>
+    <div class="divider"></div>
+    <section class="todo-section">
+      <TodoList />
+    </section>
+  </main>
+{:else}
+  <main class="zen-layout">
+    <button class="btn-exit-zen" onclick={() => zenMode = false}>Sair do Modo Zen</button>
     <PomodoroTimer />
-    <HistoryList />
-  </section>
-  <div class="divider"></div>
-  <section class="todo-section">
-    <TodoList />
-  </section>
-</main>
+  </main>
+{/if}
+
+{#if showHistory}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="modal-backdrop" onclick={() => showHistory = false}>
+    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+      <button class="btn-close-modal" onclick={() => showHistory = false}>✕</button>
+      <HistoryList />
+    </div>
+  </div>
+{/if}
 
 <style>
   :global(*, *::before, *::after) {
@@ -181,5 +207,100 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-actions {
+    display: flex;
+    gap: 0.5rem;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .nav-btn {
+    background: var(--surface-hover);
+    color: var(--text);
+    border: none;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .nav-btn:hover {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .zen-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+    padding: 2rem;
+  }
+
+  .btn-exit-zen {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-exit-zen:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal-content {
+    background: var(--bg);
+    border-radius: 12px;
+    position: relative;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .btn-close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  .btn-close-modal:hover {
+    color: var(--accent);
   }
 </style>
