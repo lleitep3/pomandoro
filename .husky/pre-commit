@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Verificar vulnerabilidades (npm audit)
+echo "🔍 Checking for vulnerabilities..."
+npm audit --audit-level=moderate || exit 1
+
+# Type check e testes relacionados aos arquivos staged
+echo "🧠 Running type check and related tests..."
+npx lint-staged
+
+# Build de verificação
+echo "🔨 Verifying build..."
+npm run build
+
+echo "✅ Pre-commit checks passed!"
