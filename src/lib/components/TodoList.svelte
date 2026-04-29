@@ -164,61 +164,71 @@
           ondragover={handleDragOver}
           ondrop={(e) => handleDrop(e, i)}
         >
-          <button
-            class="check"
-            aria-label={task.done ? 'Marcar como pendente' : 'Marcar como concluída'}
-            onclick={() => todos.toggleDone(task.id)}
-          >
-            {task.done ? '✓' : '○'}
-          </button>
+          <div class="task-header">
+            <button
+              class="priority-dot {task.priority || 'medium'}"
+              aria-label="Alterar prioridade"
+              onclick={() => cyclePriority(task)}
+              title="Prioridade: {task.priority === 'high' ? 'Alta' : task.priority === 'low' ? 'Baixa' : 'Média'}"
+            ></button>
 
-          <button
-            class="priority-dot {task.priority || 'medium'}"
-            aria-label="Alterar prioridade"
-            onclick={() => cyclePriority(task)}
-            title="Prioridade: {task.priority === 'high' ? 'Alta' : task.priority === 'low' ? 'Baixa' : 'Média'}"
-          ></button>
+            <span
+              class="tomatoes"
+              title="{task.pomodoros} pomodoros concluídos{getTaskFraction(task) > 0 ? ` e ${Math.round(getTaskFraction(task) * 100)}% de um em andamento` : ''} (Tempo total: {getTotalElapsedMinutes(task)} min)"
+            >
+              {#if task.pomodoros > 0}
+                {'🍅'.repeat(Math.min(task.pomodoros, 8))}{task.pomodoros > 8 ? ` ×${task.pomodoros}` : ''}
+              {/if}
+              {#if getTaskFraction(task) > 0 && task.pomodoros <= 8}
+                <span class="tomato-fraction">
+                  <span class="tomato-bg">🍅</span>
+                  <span class="tomato-fg" style="width: {getTaskFraction(task) * 100}%;">🍅</span>
+                </span>
+              {/if}
+            </span>
+          </div>
 
-          {#if editingId === task.id}
-            <input
-              class="task-edit-input"
-              bind:value={editTitle}
-              onkeydown={handleEditKeydown}
-              onblur={saveEdit}
-              autofocus
-            />
-          {:else}
-            <span class="task-title" ondblclick={() => startEdit(task)} title="Duplo clique para editar">{task.title}</span>
-          {/if}
+          <div class="task-body">
+            <button
+              class="check"
+              aria-label={task.done ? 'Marcar como pendente' : 'Marcar como concluída'}
+              onclick={() => todos.toggleDone(task.id)}
+            >
+              {task.done ? '✓' : '○'}
+            </button>
 
-          <span
-            class="tomatoes"
-            title="{task.pomodoros} pomodoros concluídos{getTaskFraction(task) > 0 ? ` e ${Math.round(getTaskFraction(task) * 100)}% de um em andamento` : ''} (Tempo total: {getTotalElapsedMinutes(task)} min)"
-          >
-            {#if task.pomodoros > 0}
-              {'🍅'.repeat(Math.min(task.pomodoros, 8))}{task.pomodoros > 8 ? ` ×${task.pomodoros}` : ''}
+            {#if editingId === task.id}
+              <input
+                class="task-edit-input"
+                bind:value={editTitle}
+                onkeydown={handleEditKeydown}
+                onblur={saveEdit}
+                autofocus
+              />
+            {:else}
+              <span class="task-title" ondblclick={() => startEdit(task)} title="Duplo clique para editar">{task.title}</span>
+              <button
+                class="btn-icon"
+                aria-label="Editar tarefa"
+                onclick={() => startEdit(task)}
+                title="Editar tarefa"
+              >✎</button>
             {/if}
-            {#if getTaskFraction(task) > 0 && task.pomodoros <= 8}
-              <span class="tomato-fraction">
-                <span class="tomato-bg">🍅</span>
-                <span class="tomato-fg" style="width: {getTaskFraction(task) * 100}%;">🍅</span>
-              </span>
-            {/if}
-          </span>
 
-          <button
-            class="btn-play"
-            class:selected={todos.activeTaskId === task.id}
-            aria-label={todos.activeTaskId === task.id && pomodoro.running ? 'Pausar pomodoro' : 'Iniciar pomodoro'}
-            onclick={() => toggleTaskTimer(task.id)}
-            title={todos.activeTaskId === task.id && pomodoro.running ? 'Pausar pomodoro' : 'Iniciar pomodoro'}
-          >{todos.activeTaskId === task.id && pomodoro.running ? '⏸' : '▶'}</button>
+            <button
+              class="btn-play"
+              class:selected={todos.activeTaskId === task.id}
+              aria-label={todos.activeTaskId === task.id && pomodoro.running ? 'Pausar pomodoro' : 'Iniciar pomodoro'}
+              onclick={() => toggleTaskTimer(task.id)}
+              title={todos.activeTaskId === task.id && pomodoro.running ? 'Pausar pomodoro' : 'Iniciar pomodoro'}
+            >{todos.activeTaskId === task.id && pomodoro.running ? '⏸' : '▶'}</button>
 
-          <button
-            class="btn-remove"
-            aria-label="Remover tarefa"
-            onclick={() => todos.removeTask(task.id)}
-          >✕</button>
+            <button
+              class="btn-remove"
+              aria-label="Remover tarefa"
+              onclick={() => todos.removeTask(task.id)}
+            >✕</button>
+          </div>
         </li>
       {/each}
     </ul>
@@ -301,8 +311,8 @@
 
   .task-item {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 4px;
     padding: 0.6rem 0.75rem;
     background: var(--surface);
     border-radius: 8px;
@@ -312,6 +322,21 @@
 
   .task-item.active {
     border-color: var(--accent);
+  }
+
+  .task-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-bottom: 2px;
+  }
+
+  .task-body {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
   }
 
   .task-item.done .task-title {
@@ -367,6 +392,22 @@
   .tomatoes:hover {
     transform: scale(1.1);
     filter: drop-shadow(0 0 4px rgba(233, 69, 96, 0.4));
+  }
+
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+
+  .btn-icon:hover {
+    color: var(--accent);
   }
 
   .btn-play {
