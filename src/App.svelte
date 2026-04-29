@@ -1,6 +1,7 @@
 <script lang="ts">
   import PomodoroTimer from './lib/components/PomodoroTimer.svelte'
   import TodoList from './lib/components/TodoList.svelte'
+  import HistoryList from './lib/components/HistoryList.svelte'
   import logo from './assets/icon.svg'
 </script>
 
@@ -14,6 +15,7 @@
 <main class="layout">
   <section class="timer-section">
     <PomodoroTimer />
+    <HistoryList />
   </section>
   <div class="divider"></div>
   <section class="todo-section">
@@ -75,8 +77,8 @@
     flex: 1;
     min-width: 320px;
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     padding-top: 2rem;
   }
 
