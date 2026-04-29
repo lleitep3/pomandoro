@@ -6,6 +6,8 @@ export interface Task {
   pomodoros: number
   done: boolean
   priority?: 'low' | 'medium' | 'high'
+  timerMode?: TimerMode
+  timerRemaining?: number
 }
 
 export interface HistoryEntry {

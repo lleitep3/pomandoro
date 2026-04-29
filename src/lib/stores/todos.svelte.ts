@@ -1,4 +1,4 @@
-import type { Task } from '../types'
+import type { Task, TimerMode } from '../types'
 
 const STORAGE_KEY = 'pomandoro-tasks'
 
@@ -70,6 +70,11 @@ function createTodosStore() {
 
     selectTask(id: string | null) {
       activeTaskId = id
+    },
+
+    updateTimerState(id: string, mode: TimerMode, remaining: number) {
+      tasks = tasks.map(t => t.id === id ? { ...t, timerMode: mode, timerRemaining: remaining } : t)
+      save(tasks)
     },
   }
 }

@@ -174,4 +174,15 @@ describe("Todos Store Logic", () => {
     expect(newTasks[1].id).toBe("3");
     expect(newTasks[2].id).toBe("1");
   });
+
+  it("updates timer state for a task", () => {
+    const task: Task = { id: "1", title: "Task 1", pomodoros: 0, done: false };
+    const mode = "short-break";
+    const remaining = 250;
+    
+    const updated = { ...task, timerMode: mode as const, timerRemaining: remaining };
+    
+    expect(updated.timerMode).toBe("short-break");
+    expect(updated.timerRemaining).toBe(250);
+  });
 });

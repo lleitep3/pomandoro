@@ -81,6 +81,9 @@ function createPomodoroStore() {
     stop()
     mode = m
     remaining = DURATIONS[m]
+    if (todos.activeTaskId) {
+      todos.updateTimerState(todos.activeTaskId, mode, remaining)
+    }
   }
 
   return {
@@ -100,11 +103,23 @@ function createPomodoroStore() {
 
     pause() {
       stop()
+      if (todos.activeTaskId) {
+        todos.updateTimerState(todos.activeTaskId, mode, remaining)
+      }
+    },
+
+    loadState(m: TimerMode, rem: number) {
+      stop()
+      mode = m
+      remaining = rem
     },
 
     reset() {
       stop()
       remaining = DURATIONS[mode]
+      if (todos.activeTaskId) {
+        todos.updateTimerState(todos.activeTaskId, mode, remaining)
+      }
     },
 
     setMode,

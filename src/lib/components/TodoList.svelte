@@ -79,8 +79,19 @@
       if (pomodoro.running) pomodoro.pause()
       else pomodoro.start()
     } else {
+      if (pomodoro.running) pomodoro.pause()
+      else if (todos.activeTaskId) {
+        todos.updateTimerState(todos.activeTaskId, pomodoro.mode, pomodoro.remaining)
+      }
+      
+      const newTask = todos.tasks.find(t => t.id === id)
       todos.selectTask(id)
-      pomodoro.setMode('work')
+      
+      if (newTask && newTask.timerMode && newTask.timerRemaining !== undefined) {
+        pomodoro.loadState(newTask.timerMode, newTask.timerRemaining)
+      } else {
+        pomodoro.setMode('work')
+      }
       pomodoro.start()
     }
   }
