@@ -1,0 +1,126 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version-check:
+    name: Version Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get main branch version
+        id: main-version
+        run: |
+          git fetch origin main:main
+          MAIN_VERSION=$(git show main:package.json | jq -r '.version')
+          echo "version=$MAIN_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get PR branch version
+        id: pr-version
+        run: |
+          PR_VERSION=$(jq -r '.version' package.json)
+          echo "version=$PR_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compare versions
+        run: |
+          MAIN_VERSION="${{ steps.main-version.outputs.version }}"
+          PR_VERSION="${{ steps.pr-version.outputs.version }}"
+
+          echo "Main version: $MAIN_VERSION"
+          echo "PR version: $PR_VERSION"
+
+          if [ "$PR_VERSION" = "$MAIN_VERSION" ]; then
+            echo "❌ Error: PR version ($PR_VERSION) must be different from main version ($MAIN_VERSION)"
+            exit 1
+          fi
+
+          MAIN_MAJOR=$(echo "$MAIN_VERSION" | cut -d. -f1)
+          MAIN_MINOR=$(echo "$MAIN_VERSION" | cut -d. -f2)
+          MAIN_PATCH=$(echo "$MAIN_VERSION" | cut -d. -f3)
+
+          PR_MAJOR=$(echo "$PR_VERSION" | cut -d. -f1)
+          PR_MINOR=$(echo "$PR_VERSION" | cut -d. -f2)
+          PR_PATCH=$(echo "$PR_VERSION" | cut -d. -f3)
+
+          PR_NUM=$((PR_MAJOR * 1000000 + PR_MINOR * 1000 + PR_PATCH))
+          MAIN_NUM=$((MAIN_MAJOR * 1000000 + MAIN_MINOR * 1000 + MAIN_PATCH))
+
+          if [ $PR_NUM -le $MAIN_NUM ]; then
+            echo "❌ Error: PR version ($PR_VERSION) must be greater than main version ($MAIN_VERSION)"
+            exit 1
+          fi
+
+          echo "✅ Version check passed: $PR_VERSION > $MAIN_VERSION"
+
+  unit-tests:
+    name: Unit Tests with Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npm run check
