@@ -43,6 +43,25 @@ describe("History Store Logic", () => {
     expect(entries[1].id).toBe("1");
   });
 
+  it("can add a play event entry without duration", () => {
+    let entries: HistoryEntry[] = [];
+    
+    const newEntry: HistoryEntry = {
+      id: "3",
+      taskId: "t1",
+      taskTitle: "Task 1",
+      mode: "work",
+      completedAt: Date.now(),
+      type: "play"
+    };
+    
+    entries = [newEntry, ...entries];
+    
+    expect(entries).toHaveLength(1);
+    expect(entries[0].type).toBe("play");
+    expect(entries[0].duration).toBeUndefined();
+  });
+
   it("clears history", () => {
     let entries: HistoryEntry[] = [
       { id: "1", taskId: "t1", taskTitle: "Task 1", mode: "work", duration: 1500, completedAt: 123456 },

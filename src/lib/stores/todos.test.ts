@@ -142,17 +142,17 @@ describe("Todos Store Logic", () => {
     const task: Task = { id: "1", title: "Task", pomodoros: 0, done: false };
     const newTitle = "  Updated Task  ";
     const trimmed = newTitle.trim();
-    
+
     const edited = trimmed ? { ...task, title: trimmed } : task;
-    
+
     expect(edited.title).toBe("Updated Task");
   });
 
   it("sets task priority", () => {
     const task: Task = { id: "1", title: "Task", pomodoros: 0, done: false, priority: "medium" };
-    
+
     const updated = { ...task, priority: "high" as const };
-    
+
     expect(updated.priority).toBe("high");
   });
 
@@ -162,14 +162,14 @@ describe("Todos Store Logic", () => {
       { id: "2", title: "Task 2", pomodoros: 0, done: false },
       { id: "3", title: "Task 3", pomodoros: 0, done: false },
     ];
-    
+
     const oldIndex = 0;
     const newIndex = 2;
-    
+
     const newTasks = [...tasks];
     const [moved] = newTasks.splice(oldIndex, 1);
     newTasks.splice(newIndex, 0, moved);
-    
+
     expect(newTasks[0].id).toBe("2");
     expect(newTasks[1].id).toBe("3");
     expect(newTasks[2].id).toBe("1");
@@ -179,9 +179,9 @@ describe("Todos Store Logic", () => {
     const task: Task = { id: "1", title: "Task 1", pomodoros: 0, done: false };
     const mode = "short-break";
     const remaining = 250;
-    
-    const updated = { ...task, timerMode: mode as const, timerRemaining: remaining };
-    
+
+    const updated = { ...task, timerMode: mode, timerRemaining: remaining };
+
     expect(updated.timerMode).toBe("short-break");
     expect(updated.timerRemaining).toBe(250);
   });
