@@ -46,7 +46,8 @@ export const translations = {
     markPending: 'Marcar como pendente',
     changePriority: 'Alterar prioridade',
     startPomodoro: 'Iniciar pomodoro',
-    pausePomodoro: 'Pausar pomodoro'
+    pausePomodoro: 'Pausar pomodoro',
+    addTask: 'Adicionar nova tarefa'
   },
   en: {
     settings: 'Settings',
@@ -93,7 +94,8 @@ export const translations = {
     markPending: 'Mark as pending',
     changePriority: 'Change priority',
     startPomodoro: 'Start pomodoro',
-    pausePomodoro: 'Pause pomodoro'
+    pausePomodoro: 'Pause pomodoro',
+    addTask: 'Add new task'
   },
   es: {
     settings: 'Configuración',
@@ -125,7 +127,7 @@ export const translations = {
     start: 'Iniciar',
     pause: 'Pausa',
     resetTimer: 'Reiniciar',
-    historyTitle: 'Historial de Actividades',
+    historyTitle: 'Historial de Atividades',
     emptyHistory: 'Aún no hay registros.',
     clearHistory: 'Limpiar Historial',
     sessionStart: 'Inicio',
@@ -140,6 +142,7 @@ export const translations = {
     markPending: 'Marcar como pendiente',
     changePriority: 'Cambiar prioridad',
     startPomodoro: 'Iniciar pomodoro',
-    pausePomodoro: 'Pausar pomodoro'
+    pausePomodoro: 'Pausar pomodoro',
+    addTask: 'Añadir nueva tarea'
   }
 }

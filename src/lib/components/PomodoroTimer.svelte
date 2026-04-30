@@ -33,7 +33,7 @@
     {/each}
   </div>
 
-  <div class="clock-wrap">
+  <div class="clock-wrap" role="timer" aria-live="off" aria-label="{pomodoro.label} {t('min')} - {t(pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'shortBreak' : 'longBreak')}">
     <svg class="clock-svg" viewBox="0 0 {SIZE} {SIZE}">
       <circle
         cx={SIZE / 2}

@@ -23,7 +23,7 @@
 
 <div class="history-panel">
   <div class="history-header">
-    <h2 class="history-heading">{t('historyTitle')}</h2>
+    <h2 id="history-title" class="history-heading">{t('historyTitle')}</h2>
     {#if history.entries.length > 0}
       <button class="btn-clear" onclick={() => history.clearHistory()}>{t('clearHistory')}</button>
     {/if}
@@ -32,9 +32,14 @@
   {#if history.entries.length === 0}
     <p class="empty">{t('emptyHistory')}</p>
   {:else}
-    <ul class="history-list">
+    <ul class="history-list" role="list">
       {#each history.entries as entry (entry.id)}
-        <li class="history-item" class:play-event={entry.type === 'play'}>
+        <li 
+          class="history-item" 
+          role="listitem"
+          class:play-event={entry.type === 'play'}
+          aria-label="{entry.type === 'play' ? t('sessionStart') : getModeLabel(entry.mode)}: {entry.taskTitle || t('semTarefa')} - {formatDate(entry.completedAt)} {formatTime(entry.completedAt)}"
+        >
           <div class="history-main">
             {#if entry.type === 'play'}
               <span class="mode-badge play">▶ {t('sessionStart')}</span>

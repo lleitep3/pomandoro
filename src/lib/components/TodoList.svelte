@@ -151,16 +151,18 @@
       bind:value={newTitle}
       onkeydown={handleKeydown}
     />
-    <button class="btn-add" onclick={handleAdd} disabled={!newTitle.trim()}>+</button>
+    <button class="btn-add" onclick={handleAdd} disabled={!newTitle.trim()} aria-label={t('addTask')}>+</button>
   </div>
 
   {#if todos.tasks.length === 0}
     <p class="empty">{t('noTasks')}</p>
   {:else}
-    <ul class="task-list">
+    <ul class="task-list" role="list" aria-label={t('tasks')}>
       {#each todos.tasks as task, i (task.id)}
         <li
           class="task-item"
+          role="listitem"
+          aria-label="{task.title} - {task.done ? t('concluded') : t('inProgress')} - {t('priority')}: {t(task.priority || 'medium')}"
           class:active={todos.activeTaskId === task.id}
           class:done={task.done}
           draggable="true"

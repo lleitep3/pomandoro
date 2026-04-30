@@ -7,7 +7,7 @@
 
 <div class="settings-panel">
   <div class="settings-header">
-    <h3>{t('settings')}</h3>
+    <h3 id="settings-title">{t('settings')}</h3>
   </div>
 
   <div class="settings-content">

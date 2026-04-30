@@ -21,12 +21,51 @@
     document.documentElement.classList.toggle('light-theme', !isDark)
   })
 
+  let previousActiveElement: HTMLElement | null = null
+
   function handleGlobalKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape') {
       showHistory = false
       showSettings = false
     }
+
+    // Focus trap logic
+    if (showHistory || showSettings) {
+      if (e.key === 'Tab') {
+        const modal = document.querySelector('.modal-content')
+        if (!modal) return
+        
+        const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+        const first = focusables[0] as HTMLElement
+        const last = focusables[focusables.length - 1] as HTMLElement
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+    }
   }
+
+  $effect(() => {
+    if (showHistory || showSettings) {
+      previousActiveElement = document.activeElement as HTMLElement
+      setTimeout(() => {
+        const closeBtn = document.querySelector('.btn-close-modal') as HTMLElement
+        closeBtn?.focus()
+      }, 10)
+    } else if (previousActiveElement) {
+      previousActiveElement.focus()
+      previousActiveElement = null
+    }
+  })
 </script>
 
 <svelte:window bind:scrollY onkeydown={handleGlobalKeydown} />
@@ -98,7 +137,14 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal-backdrop" onclick={() => showHistory = false}>
-    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+    <div 
+      class="modal-content" 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby="history-title"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+    >
       <button class="btn-close-modal" onclick={() => showHistory = false} aria-label={t('close')}>✕</button>
       <HistoryList />
     </div>
@@ -109,7 +155,14 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal-backdrop" onclick={() => showSettings = false}>
-    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+    <div 
+      class="modal-content" 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby="settings-title"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+    >
       <button class="btn-close-modal" onclick={() => showSettings = false} aria-label={t('close')}>✕</button>
       <SettingsModal />
     </div>
