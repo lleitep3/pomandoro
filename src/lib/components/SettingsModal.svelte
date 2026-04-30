@@ -13,7 +13,7 @@
     <!-- Language -->
     <div class="setting-group">
       <label for="lang-select">{t('language')}</label>
-      <select id="lang-select" value={settings.language} onchange={(e) => settings.language = (e.target as HTMLSelectElement).value as any}>
+      <select id="lang-select" value={settings.language} oninput={(e) => settings.language = (e.target as HTMLSelectElement).value as any}>
         <option value="pt-BR">Português (BR)</option>
         <option value="en">English</option>
         <option value="es">Español</option>
@@ -23,7 +23,7 @@
     <!-- Theme -->
     <div class="setting-group">
       <label for="theme-select">{t('theme')}</label>
-      <select id="theme-select" value={settings.theme} onchange={(e) => settings.theme = (e.target as HTMLSelectElement).value as any}>
+      <select id="theme-select" value={settings.theme} oninput={(e) => settings.theme = (e.target as HTMLSelectElement).value as any}>
         <option value="system">{t('system')}</option>
         <option value="dark">{t('dark')}</option>
         <option value="light">{t('light')}</option>
@@ -42,7 +42,7 @@
             min="1" 
             max="60" 
             value={settings.durations.work} 
-            onchange={(e) => settings.updateDuration('work', parseInt((e.target as HTMLInputElement).value))}
+            oninput={(e) => settings.updateDuration('work', parseInt((e.target as HTMLInputElement).value) || 25)}
           />
         </div>
         <div class="input-item">
@@ -53,7 +53,7 @@
             min="1" 
             max="30" 
             value={settings.durations['short-break']} 
-            onchange={(e) => settings.updateDuration('short-break', parseInt((e.target as HTMLInputElement).value))}
+            oninput={(e) => settings.updateDuration('short-break', parseInt((e.target as HTMLInputElement).value) || 5)}
           />
         </div>
         <div class="input-item">
@@ -64,7 +64,7 @@
             min="1" 
             max="60" 
             value={settings.durations['long-break']} 
-            onchange={(e) => settings.updateDuration('long-break', parseInt((e.target as HTMLInputElement).value))}
+            oninput={(e) => settings.updateDuration('long-break', parseInt((e.target as HTMLInputElement).value) || 15)}
           />
         </div>
       </div>
@@ -75,6 +75,14 @@
         settings.reset()
       }}>
         {t('reset')}
+      </button>
+      <button class="btn-danger" onclick={() => {
+        if (confirm(t('confirmClearData') || 'Clear all data?')) {
+          localStorage.clear()
+          window.location.reload()
+        }
+      }}>
+        {t('clearData')}
       </button>
     </div>
   </div>
@@ -185,5 +193,22 @@
   .btn-reset:hover {
     border-color: var(--accent);
     color: var(--accent);
+  }
+
+  .btn-danger {
+    background: none;
+    border: 1px solid rgba(233, 69, 96, 0.3);
+    color: var(--accent);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
   }
 </style>

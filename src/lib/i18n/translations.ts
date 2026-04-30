@@ -21,8 +21,11 @@ export const translations = {
     activeTask: 'Tarefa Ativa',
     noTasks: 'Nenhuma tarefa. Adicione uma acima!',
     addPlaceholder: 'Adicionar tarefa...',
-    pomodorosToday: 'pomodoro hoje',
+    pomodoroToday: 'pomodoro hoje',
+    pomodorosToday: 'pomodoros hoje',
     totalTime: 'Tempo total',
+    clearData: 'Limpar Dados',
+    confirmClearData: 'Deseja apagar todos os dados e configurações?',
     concluded: 'concluídos',
     inProgress: 'em andamento',
     doubleClickEdit: 'Duplo clique para editar',
@@ -47,7 +50,11 @@ export const translations = {
     changePriority: 'Alterar prioridade',
     startPomodoro: 'Iniciar pomodoro',
     pausePomodoro: 'Pausar pomodoro',
-    addTask: 'Adicionar nova tarefa'
+    addTask: 'Adicionar nova tarefa',
+    compactView: 'Visão compacta',
+    fullView: 'Visão completa',
+    minimize: 'Minimizar timer',
+    expand: 'Expandir timer'
   },
   en: {
     settings: 'Settings',
@@ -69,8 +76,11 @@ export const translations = {
     activeTask: 'Active Task',
     noTasks: 'No tasks. Add one above!',
     addPlaceholder: 'Add task...',
-    pomodorosToday: 'pomodoro today',
+    pomodoroToday: 'pomodoro today',
+    pomodorosToday: 'pomodoros today',
     totalTime: 'Total time',
+    clearData: 'Clear Data',
+    confirmClearData: 'Clear all data and settings?',
     concluded: 'completed',
     inProgress: 'in progress',
     doubleClickEdit: 'Double click to edit',
@@ -95,7 +105,11 @@ export const translations = {
     changePriority: 'Change priority',
     startPomodoro: 'Start pomodoro',
     pausePomodoro: 'Pause pomodoro',
-    addTask: 'Add new task'
+    addTask: 'Add new task',
+    compactView: 'Compact view',
+    fullView: 'Full view',
+    minimize: 'Minimize timer',
+    expand: 'Expand timer'
   },
   es: {
     settings: 'Configuración',
@@ -117,8 +131,11 @@ export const translations = {
     activeTask: 'Tarea Activa',
     noTasks: 'No hay tareas. ¡Añade una arriba!',
     addPlaceholder: 'Añadir tarea...',
-    pomodorosToday: 'pomodoro hoy',
+    pomodoroToday: 'pomodoro hoy',
+    pomodorosToday: 'pomodoros hoy',
     totalTime: 'Tiempo total',
+    clearData: 'Borrar Datos',
+    confirmClearData: '¿Borrar todos los datos y ajustes?',
     concluded: 'completados',
     inProgress: 'en curso',
     doubleClickEdit: 'Doble clic para editar',
@@ -143,6 +160,10 @@ export const translations = {
     changePriority: 'Cambiar prioridad',
     startPomodoro: 'Iniciar pomodoro',
     pausePomodoro: 'Pausar pomodoro',
-    addTask: 'Añadir nueva tarea'
+    addTask: 'Añadir nueva tarefa',
+    compactView: 'Vista compacta',
+    fullView: 'Vista completa',
+    minimize: 'Minimizar timer',
+    expand: 'Expandir timer'
   }
 }

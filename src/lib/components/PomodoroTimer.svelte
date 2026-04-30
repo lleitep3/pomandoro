@@ -11,11 +11,11 @@
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS
   const t = settings.t
 
-  const modes: { key: TimerMode; label: string }[] = [
-    { key: 'work', label: t('work') },
-    { key: 'short-break', label: t('shortBreak') },
-    { key: 'long-break', label: t('longBreak') },
-  ]
+  const modes = $derived([
+    { key: 'work' as TimerMode, label: t('work') },
+    { key: 'short-break' as TimerMode, label: t('shortBreak') },
+    { key: 'long-break' as TimerMode, label: t('longBreak') },
+  ])
 
   const dashoffset = $derived(CIRCUMFERENCE * (1 - pomodoro.progress))
 </script>
@@ -87,7 +87,7 @@
   </div>
 
   <p class="pomodoro-count">
-    🍅 {pomodoro.workCount} {t('pomodorosToday')}
+    🍅 {pomodoro.workCount} {pomodoro.workCount === 1 ? t('pomodoroToday') : t('pomodorosToday')}
   </p>
 </div>
 

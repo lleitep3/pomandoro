@@ -1,6 +1,7 @@
 import type { Task, TimerMode } from '../types'
 
 const STORAGE_KEY = 'pomandoro-tasks'
+const ACTIVE_TASK_KEY = 'pomandoro-active-task-id'
 
 function loadFromStorage(): Task[] {
   try {
@@ -11,13 +12,25 @@ function loadFromStorage(): Task[] {
   }
 }
 
+function loadActiveTaskId(): string | null {
+  return localStorage.getItem(ACTIVE_TASK_KEY)
+}
+
 function save(tasks: Task[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
 }
 
+function saveActiveTaskId(id: string | null) {
+  if (id) {
+    localStorage.setItem(ACTIVE_TASK_KEY, id)
+  } else {
+    localStorage.removeItem(ACTIVE_TASK_KEY)
+  }
+}
+
 function createTodosStore() {
   let tasks = $state<Task[]>(loadFromStorage())
-  let activeTaskId = $state<string | null>(null)
+  let activeTaskId = $state<string | null>(loadActiveTaskId())
 
   return {
     get tasks() { return tasks },
@@ -33,7 +46,10 @@ function createTodosStore() {
 
     removeTask(id: string) {
       tasks = tasks.filter(t => t.id !== id)
-      if (activeTaskId === id) activeTaskId = null
+      if (activeTaskId === id) {
+        activeTaskId = null
+        saveActiveTaskId(null)
+      }
       save(tasks)
     },
 
@@ -70,12 +86,25 @@ function createTodosStore() {
 
     selectTask(id: string | null) {
       activeTaskId = id
+      saveActiveTaskId(id)
     },
 
     updateTimerState(id: string, mode: TimerMode, remaining: number) {
       tasks = tasks.map(t => t.id === id ? { ...t, timerMode: mode, timerRemaining: remaining } : t)
       save(tasks)
     },
+
+    updateAllTasksProportionally(oldTotal: number, newTotal: number, mode: TimerMode) {
+      if (oldTotal <= 0) return
+      tasks = tasks.map(t => {
+        if (t.timerMode === mode && t.timerRemaining !== undefined) {
+          const ratio = t.timerRemaining / oldTotal
+          return { ...t, timerRemaining: Math.round(ratio * newTotal) }
+        }
+        return t
+      })
+      save(tasks)
+    }
   }
 }
 

@@ -12,6 +12,7 @@
   let zenMode = $state(false)
   let showHistory = $state(false)
   let showSettings = $state(false)
+  let showTimer = $state(true)
 
   const t = settings.t
 
@@ -21,14 +22,20 @@
     document.documentElement.classList.toggle('light-theme', !isDark)
   })
 
+  let lastPomodoroMode = $state(pomodoro.mode)
   let lastPomodoroTotal = $state(pomodoro.total)
 
   $effect(() => {
+    const currentMode = pomodoro.mode
     const currentTotal = pomodoro.total
-    if (currentTotal !== lastPomodoroTotal) {
+    
+    if (currentMode === lastPomodoroMode && currentTotal !== lastPomodoroTotal) {
       pomodoro.updateProportionally(lastPomodoroTotal, currentTotal)
-      lastPomodoroTotal = currentTotal
+      todos.updateAllTasksProportionally(lastPomodoroTotal, currentTotal, currentMode)
     }
+    
+    lastPomodoroMode = currentMode
+    lastPomodoroTotal = currentTotal
   })
 
   let previousActiveElement: HTMLElement | null = null
@@ -84,44 +91,73 @@
   <header class="navbar">
     <div class="logo">
       <img src={logo} alt="PoMandoro" />
-      <span>PoMandoro</span>
+      <span class="logo-text">PoMandoro</span>
     </div>
-    <div class="nav-right">
-      {#if scrollY > 150}
-        <div class="mini-timer-wrap">
-          <div 
-            class="mini-timer"
-            style="background: linear-gradient(to right, var(--accent) {(1 - pomodoro.progress) * 100}%, var(--surface-hover) {(1 - pomodoro.progress) * 100}%);"
-          >
-            <div class="mini-timer-content">
-              <span class="mini-time">{pomodoro.label}</span>
-              <span class="mini-mode">{t(pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'shortBreak' : 'longBreak')}</span>
-            </div>
+
+    <div class="nav-center">
+      {#if !showTimer || todos.activeTask}
+        <button 
+          class="mini-timer-btn" 
+          onclick={() => showTimer = !showTimer} 
+          title={showTimer ? t('minimize') : t('expand')}
+          aria-label={showTimer ? t('minimize') : t('expand')}
+        >
+          <div class="mini-timer">
+            <span class="time">{pomodoro.label}</span>
+            <span class="mode">{t(pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'shortBreak' : 'longBreak')}</span>
           </div>
-          {#if todos.activeTask}
-            <div class="mini-task" title={todos.activeTask.title}>{todos.activeTask.title}</div>
-          {/if}
-        </div>
-      {:else}
-        <div class="nav-actions">
-          <button class="nav-btn" onclick={() => showHistory = true}>{t('history')}</button>
-          <button class="nav-btn" onclick={() => zenMode = true}>{t('zenMode')}</button>
-          <button class="nav-btn gear-btn" onclick={() => showSettings = true} aria-label={t('settings')}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-          </button>
-        </div>
+        </button>
       {/if}
+    </div>
+
+    <div class="nav-actions">
+      <button class="nav-btn" onclick={() => showHistory = true} title={t('history')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 8v4l3 3"></path>
+          <circle cx="12" cy="12" r="9"></circle>
+        </svg>
+        <span>{t('history')}</span>
+      </button>
+      <button class="nav-btn" onclick={() => zenMode = true} title={t('zenMode')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5"></path>
+          <path d="M2 12l10 5 10-5"></path>
+        </svg>
+        <span>{t('zenMode')}</span>
+      </button>
+      <button class="nav-btn" onclick={() => showTimer = !showTimer} title={showTimer ? t('compactView') : t('fullView')} aria-label={showTimer ? t('compactView') : t('fullView')}>
+        {#if showTimer}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 1l22 22"/>
+            <path d="M17.94 17.94A10 10 0 0 1 12 22c-5.52 0-10-4.48-10-10 0-2.16.78-4.13 2.07-5.66"/>
+            <path d="M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 2.12-5.12"/>
+          </svg>
+        {:else}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
+          </svg>
+        {/if}
+        <span>{showTimer ? t('compactView') : t('fullView')}</span>
+      </button>
+      <button class="nav-btn" onclick={() => showSettings = true} aria-label={t('settings')} title={t('settings')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>{t('settings')}</span>
+      </button>
     </div>
   </header>
 
-  <main class="layout">
-    <section class="timer-section">
-      <PomodoroTimer />
-    </section>
-    <div class="divider"></div>
+  <main class="layout" class:compact={!showTimer}>
+    {#if showTimer}
+      <section class="timer-section">
+        <PomodoroTimer />
+      </section>
+      <div class="divider"></div>
+    {/if}
     <section class="todo-section">
       <TodoList />
     </section>
@@ -251,10 +287,6 @@
 
   .timer-section {
     flex: 1;
-    min-width: 320px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     padding-top: 2rem;
   }
 
@@ -278,14 +310,6 @@
     }
   }
 
-  .mini-timer-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    animation: fadeIn 0.3s ease;
-  }
-
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -301,60 +325,99 @@
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
 
-  .mini-timer-content {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    z-index: 1;
+  .mini-timer-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.2s;
   }
 
-  .mini-task {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .mini-timer-btn:hover {
+    transform: scale(1.05);
   }
 
-  .nav-right {
+  .mini-timer {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+    background: rgba(233, 69, 96, 0.1);
+    padding: 6px 16px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    border: 1px solid rgba(233, 69, 96, 0.3);
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .mini-timer:hover {
+    background: rgba(233, 69, 96, 0.15);
+    border-color: #e94560;
+  }
+
+  .mini-timer .time {
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  .mini-timer .mode {
+    color: #e94560;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .nav-actions {
     display: flex;
-    gap: 0.5rem;
-    animation: fadeIn 0.3s ease;
+    gap: 0.25rem;
+    flex-shrink: 0;
   }
 
   .nav-btn {
-    background: var(--surface-hover);
-    color: var(--text);
+    background: none;
     border: none;
-    border-radius: 6px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s, color 0.2s;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .nav-btn:hover {
-    background: var(--accent);
-    color: #fff;
+    background: var(--surface-hover);
+    color: var(--text);
   }
 
-  .gear-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.4rem;
+
+  @media (max-width: 640px) {
+    .logo-text {
+      display: none;
+    }
+    .nav-btn span {
+      display: none;
+    }
+    .nav-actions {
+      gap: 0.15rem;
+    }
+    .nav-btn {
+      padding: 0.4rem 0.3rem;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .mini-timer .mode {
+      display: none;
+    }
+    .mini-timer {
+      padding: 2px 6px;
+    }
   }
 
   .zen-layout {

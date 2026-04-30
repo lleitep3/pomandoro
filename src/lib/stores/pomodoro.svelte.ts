@@ -21,12 +21,59 @@ function beep() {
   }
 }
 
+const STORAGE_KEY = 'pomandoro-timer-state'
+
+interface TimerState {
+  mode: TimerMode
+  remaining: number
+  running: boolean
+  workCount: number
+  lastUpdate: number
+}
+
 function createPomodoroStore() {
   let mode = $state<TimerMode>('work')
   let remaining = $state(settings.durations['work'] * 60)
   let running = $state(false)
   let workCount = $state(0)
   let intervalId: ReturnType<typeof setInterval> | null = null
+
+  // Persistence
+  function save() {
+    const state: TimerState = {
+      mode,
+      remaining,
+      running,
+      workCount,
+      lastUpdate: Date.now()
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  }
+
+  function load() {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+
+    try {
+      const state: TimerState = JSON.parse(saved)
+      mode = state.mode
+      workCount = state.workCount
+      
+      const elapsed = state.running ? Math.floor((Date.now() - state.lastUpdate) / 1000) : 0
+      remaining = Math.max(0, state.remaining - elapsed)
+      
+      if (state.running && remaining > 0) {
+        start()
+      } else if (state.running && remaining <= 0) {
+        // Timer finished while away
+        remaining = 0
+        beep()
+        onComplete()
+      }
+    } catch (e) {
+      console.error('Failed to load timer state', e)
+    }
+  }
 
   const total = $derived(settings.durations[mode] * 60)
   const progress = $derived(remaining / total)
@@ -45,6 +92,7 @@ function createPomodoroStore() {
       return
     }
     remaining--
+    save() // Persist every tick
   }
 
   function stop() {
@@ -53,6 +101,7 @@ function createPomodoroStore() {
       intervalId = null
     }
     running = false
+    save()
   }
 
   function onComplete() {
@@ -72,6 +121,7 @@ function createPomodoroStore() {
     } else {
       setMode('work')
     }
+    save()
   }
 
   function setMode(m: TimerMode) {
@@ -81,6 +131,19 @@ function createPomodoroStore() {
     if (todos.activeTaskId) {
       todos.updateTimerState(todos.activeTaskId, mode, remaining)
     }
+    save()
+  }
+
+  function start() {
+    if (running && intervalId) return
+    running = true
+    save()
+    intervalId = setInterval(tick, 1000)
+  }
+
+  // Load state on creation
+  if (typeof localStorage !== 'undefined') {
+    setTimeout(load, 0) // Ensure settings and other stores are ready
   }
 
   return {
@@ -92,11 +155,7 @@ function createPomodoroStore() {
     get progress() { return progress },
     get label() { return label },
 
-    start() {
-      if (running) return
-      running = true
-      intervalId = setInterval(tick, 1000)
-    },
+    start,
 
     pause() {
       stop()
@@ -109,6 +168,7 @@ function createPomodoroStore() {
       stop()
       mode = m
       remaining = rem
+      save()
     },
 
     reset() {
@@ -117,12 +177,14 @@ function createPomodoroStore() {
       if (todos.activeTaskId) {
         todos.updateTimerState(todos.activeTaskId, mode, remaining)
       }
+      save()
     },
 
     updateProportionally(oldTotal: number, newTotal: number) {
       if (oldTotal <= 0) return
       const ratio = remaining / oldTotal
       remaining = Math.max(0, Math.round(ratio * newTotal))
+      save()
     },
 
     setMode,
