@@ -20,7 +20,7 @@
   const dashoffset = $derived(CIRCUMFERENCE * (1 - pomodoro.progress))
 </script>
 
-<div class="timer-panel">
+<div class="timer-panel" style="--mode-color: var(--accent-{pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'short' : 'long'})">
   <div class="mode-tabs">
     {#each modes as m}
       <button
@@ -48,7 +48,7 @@
         cy={SIZE / 2}
         r={RADIUS}
         fill="none"
-        stroke="var(--accent)"
+        stroke="var(--mode-color)"
         stroke-width={STROKE}
         stroke-linecap="round"
         stroke-dasharray={CIRCUMFERENCE}
@@ -120,7 +120,7 @@
   }
 
   .mode-tab.active {
-    background: var(--accent);
+    background: var(--mode-color);
     color: #fff;
     font-weight: 600;
   }
@@ -182,7 +182,7 @@
   }
 
   .btn-primary {
-    background: var(--accent);
+    background: var(--mode-color);
     color: #fff;
   }
 

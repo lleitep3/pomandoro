@@ -101,10 +101,11 @@
           onclick={() => showTimer = !showTimer} 
           title={showTimer ? t('minimize') : t('expand')}
           aria-label={showTimer ? t('minimize') : t('expand')}
+          style="--mode-color: var(--accent-{pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'short' : 'long'})"
         >
-          <div class="mini-timer">
+          <div class="mini-timer" style="background: linear-gradient(to right, color-mix(in srgb, var(--mode-color) 20%, transparent) {pomodoro.progress * 100}%, transparent {pomodoro.progress * 100}%);">
             <span class="time">{pomodoro.label}</span>
-            <span class="mode">{t(pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'shortBreak' : 'longBreak')}</span>
+            <span class="mode" style="color: var(--mode-color)">{t(pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'shortBreak' : 'longBreak')}</span>
           </div>
         </button>
       {/if}
@@ -225,6 +226,9 @@
     --surface: #16213e;
     --surface-hover: #0f3460;
     --accent: #e94560;
+    --accent-work: #e94560;
+    --accent-short: #2ecc71;
+    --accent-long: #3498db;
     --track: #2a2a4a;
     --border: #2a2a4a;
     --text: #eaeaea;
@@ -236,6 +240,9 @@
     --surface: #ffffff;
     --surface-hover: #edf2f7;
     --accent: #e94560;
+    --accent-work: #e94560;
+    --accent-short: #27ae60;
+    --accent-long: #2980b9;
     --track: #e2e8f0;
     --border: #e2e8f0;
     --text: #2d3748;
@@ -340,15 +347,17 @@
   .mini-timer {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     background: rgba(233, 69, 96, 0.1);
-    padding: 6px 16px;
+    padding: 6px 20px;
     border-radius: 12px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.9rem;
-    border: 1px solid rgba(233, 69, 96, 0.3);
+    font-size: 1rem;
+    border: 1px solid rgba(var(--accent-rgb, 233, 69, 96), 0.2);
     white-space: nowrap;
     transition: all 0.2s;
+    min-width: 120px;
+    justify-content: center;
   }
 
   .mini-timer:hover {
@@ -396,7 +405,7 @@
   }
 
 
-  @media (max-width: 640px) {
+  @media (max-width: 763px) {
     .logo-text {
       display: none;
     }
@@ -404,19 +413,19 @@
       display: none;
     }
     .nav-actions {
-      gap: 0.15rem;
+      gap: 0.2rem;
     }
     .nav-btn {
-      padding: 0.4rem 0.3rem;
+      padding: 0.5rem 0.4rem;
     }
   }
 
-  @media (max-width: 400px) {
+  @media (max-width: 500px) {
     .mini-timer .mode {
       display: none;
     }
     .mini-timer {
-      padding: 2px 6px;
+      padding: 4px 8px;
     }
   }
 
