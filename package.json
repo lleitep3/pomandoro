@@ -1,6 +1,6 @@
 {
   "name": "pomandoro",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "description": "Pomodoro timer with todo list",
   "author": "Leandro Oliveira <leandro@leandroleite.info>",
