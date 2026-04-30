@@ -2,59 +2,163 @@
   import PomodoroTimer from './lib/components/PomodoroTimer.svelte'
   import TodoList from './lib/components/TodoList.svelte'
   import HistoryList from './lib/components/HistoryList.svelte'
+  import SettingsModal from './lib/components/SettingsModal.svelte'
   import { pomodoro } from './lib/stores/pomodoro.svelte'
   import { todos } from './lib/stores/todos.svelte'
+  import { settings } from './lib/stores/settings.svelte'
   import logo from './assets/icon.svg'
 
   let scrollY = $state(0)
   let zenMode = $state(false)
   let showHistory = $state(false)
+  let showSettings = $state(false)
+  let showTimer = $state(true)
 
-  const modeLabels = {
-    'work': 'Foco',
-    'short-break': 'Pausa Curta',
-    'long-break': 'Pausa Longa'
+  const t = settings.t
+
+  $effect(() => {
+    const isDark = settings.theme === 'dark' || 
+      (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.classList.toggle('light-theme', !isDark)
+  })
+
+  let lastPomodoroMode = $state(pomodoro.mode)
+  let lastPomodoroTotal = $state(pomodoro.total)
+
+  $effect(() => {
+    const currentMode = pomodoro.mode
+    const currentTotal = pomodoro.total
+    
+    if (currentMode === lastPomodoroMode && currentTotal !== lastPomodoroTotal) {
+      pomodoro.updateProportionally(lastPomodoroTotal, currentTotal)
+      todos.updateAllTasksProportionally(lastPomodoroTotal, currentTotal, currentMode)
+    }
+    
+    lastPomodoroMode = currentMode
+    lastPomodoroTotal = currentTotal
+  })
+
+  let previousActiveElement: HTMLElement | null = null
+
+  function handleGlobalKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      showHistory = false
+      showSettings = false
+    }
+
+    // Focus trap logic
+    if (showHistory || showSettings) {
+      if (e.key === 'Tab') {
+        const modal = document.querySelector('.modal-content')
+        if (!modal) return
+        
+        const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+        const first = focusables[0] as HTMLElement
+        const last = focusables[focusables.length - 1] as HTMLElement
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+    }
   }
+
+  $effect(() => {
+    if (showHistory || showSettings) {
+      previousActiveElement = document.activeElement as HTMLElement
+      setTimeout(() => {
+        const closeBtn = document.querySelector('.btn-close-modal') as HTMLElement
+        closeBtn?.focus()
+      }, 10)
+    } else if (previousActiveElement) {
+      previousActiveElement.focus()
+      previousActiveElement = null
+    }
+  })
 </script>
 
-<svelte:window bind:scrollY />
+<svelte:window bind:scrollY onkeydown={handleGlobalKeydown} />
 
 {#if !zenMode}
   <header class="navbar">
     <div class="logo">
       <img src={logo} alt="PoMandoro" />
-      <span>PoMandoro</span>
+      <span class="logo-text">PoMandoro</span>
     </div>
-    <div class="nav-right">
-      {#if scrollY > 150}
-        <div class="mini-timer-wrap">
-          <div 
-            class="mini-timer"
-            style="background: linear-gradient(to right, var(--accent) {(1 - pomodoro.progress) * 100}%, var(--surface-hover) {(1 - pomodoro.progress) * 100}%);"
-          >
-            <div class="mini-timer-content">
-              <span class="mini-time">{pomodoro.label}</span>
-              <span class="mini-mode">{modeLabels[pomodoro.mode]}</span>
-            </div>
+
+    <div class="nav-center">
+      {#if !showTimer || todos.activeTask}
+        <button 
+          class="mini-timer-btn" 
+          onclick={() => showTimer = !showTimer} 
+          title={showTimer ? t('minimize') : t('expand')}
+          aria-label={showTimer ? t('minimize') : t('expand')}
+          style="--mode-color: var(--accent-{pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'short' : 'long'})"
+        >
+          <div class="mini-timer" style="background: linear-gradient(to right, color-mix(in srgb, var(--mode-color) 20%, transparent) {pomodoro.progress * 100}%, transparent {pomodoro.progress * 100}%);">
+            <span class="time">{pomodoro.label}</span>
+            <span class="mode" style="color: var(--mode-color)">{t(pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'shortBreak' : 'longBreak')}</span>
           </div>
-          {#if todos.activeTask}
-            <div class="mini-task" title={todos.activeTask.title}>{todos.activeTask.title}</div>
-          {/if}
-        </div>
-      {:else}
-        <div class="nav-actions">
-          <button class="nav-btn" onclick={() => showHistory = true}>Histórico</button>
-          <button class="nav-btn" onclick={() => zenMode = true}>Zen Mode</button>
-        </div>
+        </button>
       {/if}
+    </div>
+
+    <div class="nav-actions">
+      <button class="nav-btn" onclick={() => showHistory = true} title={t('history')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 8v4l3 3"></path>
+          <circle cx="12" cy="12" r="9"></circle>
+        </svg>
+        <span>{t('history')}</span>
+      </button>
+      <button class="nav-btn" onclick={() => zenMode = true} title={t('zenMode')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5"></path>
+          <path d="M2 12l10 5 10-5"></path>
+        </svg>
+        <span>{t('zenMode')}</span>
+      </button>
+      <button class="nav-btn" onclick={() => showTimer = !showTimer} title={showTimer ? t('compactView') : t('fullView')} aria-label={showTimer ? t('compactView') : t('fullView')}>
+        {#if showTimer}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 1l22 22"/>
+            <path d="M17.94 17.94A10 10 0 0 1 12 22c-5.52 0-10-4.48-10-10 0-2.16.78-4.13 2.07-5.66"/>
+            <path d="M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 2.12-5.12"/>
+          </svg>
+        {:else}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
+          </svg>
+        {/if}
+        <span>{showTimer ? t('compactView') : t('fullView')}</span>
+      </button>
+      <button class="nav-btn" onclick={() => showSettings = true} aria-label={t('settings')} title={t('settings')}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>{t('settings')}</span>
+      </button>
     </div>
   </header>
 
-  <main class="layout">
-    <section class="timer-section">
-      <PomodoroTimer />
-    </section>
-    <div class="divider"></div>
+  <main class="layout" class:compact={!showTimer}>
+    {#if showTimer}
+      <section class="timer-section">
+        <PomodoroTimer />
+      </section>
+      <div class="divider"></div>
+    {/if}
     <section class="todo-section">
       <TodoList />
     </section>
@@ -71,7 +175,7 @@
   </footer>
 {:else}
   <main class="zen-layout">
-    <button class="btn-exit-zen" onclick={() => zenMode = false}>Sair do Modo Zen</button>
+    <button class="btn-exit-zen" onclick={() => zenMode = false}>{t('exitZen')}</button>
     <PomodoroTimer />
   </main>
 {/if}
@@ -80,9 +184,34 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal-backdrop" onclick={() => showHistory = false}>
-    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
-      <button class="btn-close-modal" onclick={() => showHistory = false}>✕</button>
+    <div 
+      class="modal-content" 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby="history-title"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+    >
+      <button class="btn-close-modal" onclick={() => showHistory = false} aria-label={t('close')}>✕</button>
       <HistoryList />
+    </div>
+  </div>
+{/if}
+
+{#if showSettings}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="modal-backdrop" onclick={() => showSettings = false}>
+    <div 
+      class="modal-content" 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby="settings-title"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+    >
+      <button class="btn-close-modal" onclick={() => showSettings = false} aria-label={t('close')}>✕</button>
+      <SettingsModal />
     </div>
   </div>
 {/if}
@@ -97,10 +226,27 @@
     --surface: #16213e;
     --surface-hover: #0f3460;
     --accent: #e94560;
+    --accent-work: #e94560;
+    --accent-short: #2ecc71;
+    --accent-long: #3498db;
     --track: #2a2a4a;
     --border: #2a2a4a;
     --text: #eaeaea;
     --text-muted: #888;
+  }
+
+  :global(.light-theme) {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface-hover: #edf2f7;
+    --accent: #e94560;
+    --accent-work: #e94560;
+    --accent-short: #27ae60;
+    --accent-long: #2980b9;
+    --track: #e2e8f0;
+    --border: #e2e8f0;
+    --text: #2d3748;
+    --text-muted: #718096;
   }
 
   :global(body) {
@@ -148,10 +294,6 @@
 
   .timer-section {
     flex: 1;
-    min-width: 320px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     padding-top: 2rem;
   }
 
@@ -175,14 +317,6 @@
     }
   }
 
-  .mini-timer-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    animation: fadeIn 0.3s ease;
-  }
-
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -198,53 +332,101 @@
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
 
-  .mini-timer-content {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    z-index: 1;
+  .mini-timer-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.2s;
   }
 
-  .mini-task {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .mini-timer-btn:hover {
+    transform: scale(1.05);
   }
 
-  .nav-right {
+  .mini-timer {
     display: flex;
     align-items: center;
+    gap: 0.6rem;
+    background: rgba(233, 69, 96, 0.1);
+    padding: 6px 20px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    border: 1px solid rgba(var(--accent-rgb, 233, 69, 96), 0.2);
+    white-space: nowrap;
+    transition: all 0.2s;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  .mini-timer:hover {
+    background: rgba(233, 69, 96, 0.15);
+    border-color: #e94560;
+  }
+
+  .mini-timer .time {
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  .mini-timer .mode {
+    color: #e94560;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .nav-actions {
     display: flex;
-    gap: 0.5rem;
-    animation: fadeIn 0.3s ease;
+    gap: 0.25rem;
+    flex-shrink: 0;
   }
 
   .nav-btn {
-    background: var(--surface-hover);
-    color: var(--text);
+    background: none;
     border: none;
-    border-radius: 6px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s, color 0.2s;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .nav-btn:hover {
-    background: var(--accent);
-    color: #fff;
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+
+
+  @media (max-width: 763px) {
+    .logo-text {
+      display: none;
+    }
+    .nav-btn span {
+      display: none;
+    }
+    .nav-actions {
+      gap: 0.2rem;
+    }
+    .nav-btn {
+      padding: 0.5rem 0.4rem;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .mini-timer .mode {
+      display: none;
+    }
+    .mini-timer {
+      padding: 4px 8px;
+    }
   }
 
   .zen-layout {

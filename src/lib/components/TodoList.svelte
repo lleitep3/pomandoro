@@ -2,6 +2,7 @@
   import { todos } from '../stores/todos.svelte'
   import { pomodoro } from '../stores/pomodoro.svelte'
   import { history } from '../stores/history.svelte'
+  import { settings } from '../stores/settings.svelte'
   import type { Task } from '../types'
 
   let newTitle = $state('')
@@ -124,15 +125,17 @@
   }
 
   function getTotalElapsedMinutes(task: Task) {
-    const fullMinutes = task.pomodoros * 25
+    const fullMinutes = task.pomodoros * settings.durations.work
     const partialFraction = getTaskFraction(task)
-    const partialMinutes = partialFraction * 25
+    const partialMinutes = partialFraction * settings.durations.work
     return Math.round(fullMinutes + partialMinutes)
   }
+
+  const t = settings.t
 </script>
 
 <div class="todo-panel">
-  <h2 class="todo-heading">Tarefas</h2>
+  <h2 class="todo-heading">{t('tasks')}</h2>
 
   <div class="add-row">
     <button
@@ -144,20 +147,22 @@
     <input
       class="task-input"
       type="text"
-      placeholder="Adicionar tarefa..."
+      placeholder={t('addPlaceholder')}
       bind:value={newTitle}
       onkeydown={handleKeydown}
     />
-    <button class="btn-add" onclick={handleAdd} disabled={!newTitle.trim()}>+</button>
+    <button class="btn-add" onclick={handleAdd} disabled={!newTitle.trim()} aria-label={t('addTask')}>+</button>
   </div>
 
   {#if todos.tasks.length === 0}
-    <p class="empty">Nenhuma tarefa. Adicione uma acima!</p>
+    <p class="empty">{t('noTasks')}</p>
   {:else}
-    <ul class="task-list">
+    <ul class="task-list" role="list" aria-label={t('tasks')}>
       {#each todos.tasks as task, i (task.id)}
         <li
           class="task-item"
+          role="listitem"
+          aria-label="{task.title} - {task.done ? t('concluded') : t('inProgress')} - {t('priority')}: {t(task.priority || 'medium')}"
           class:active={todos.activeTaskId === task.id}
           class:done={task.done}
           draggable="true"
@@ -167,7 +172,7 @@
         >
           <button
             class="check"
-            aria-label={task.done ? 'Marcar como pendente' : 'Marcar como concluída'}
+            aria-label={task.done ? t('markPending') : t('markDone')}
             onclick={() => todos.toggleDone(task.id)}
           >
             {task.done ? '✓' : '○'}
@@ -175,9 +180,9 @@
 
           <button
             class="priority-dot {task.priority || 'medium'}"
-            aria-label="Alterar prioridade"
+            aria-label={t('changePriority')}
             onclick={() => cyclePriority(task)}
-            title="Prioridade: {task.priority === 'high' ? 'Alta' : task.priority === 'low' ? 'Baixa' : 'Média'}"
+            title="{t('priority')}: {task.priority === 'high' ? t('high') : task.priority === 'low' ? t('low') : t('medium')}"
           ></button>
 
           {#if editingId === task.id}
@@ -189,12 +194,26 @@
               autofocus
             />
           {:else}
-            <span class="task-title" ondblclick={() => startEdit(task)} title="Duplo clique para editar">{task.title}</span>
+            <span 
+              class="task-title" 
+              role="button" 
+              tabindex="0"
+              ondblclick={() => startEdit(task)} 
+              title={t('doubleClickEdit')}
+            >
+              {task.title}
+            </span>
+            <button
+              class="btn-icon"
+              aria-label={t('pencilEdit')}
+              onclick={() => startEdit(task)}
+              title={t('pencilEdit')}
+            >✎</button>
           {/if}
 
           <span
             class="tomatoes"
-            title="{task.pomodoros} pomodoros concluídos{getTaskFraction(task) > 0 ? ` e ${Math.round(getTaskFraction(task) * 100)}% de um em andamento` : ''} (Tempo total: {getTotalElapsedMinutes(task)} min)"
+            title="{task.pomodoros} {t('concluded')}{getTaskFraction(task) > 0 ? ` e ${Math.round(getTaskFraction(task) * 100)}% ${t('inProgress')}` : ''} ({t('totalTime')}: {getTotalElapsedMinutes(task)} {t('min')})"
           >
             {#if task.pomodoros > 0}
               {'🍅'.repeat(Math.min(task.pomodoros, 8))}{task.pomodoros > 8 ? ` ×${task.pomodoros}` : ''}
@@ -210,14 +229,14 @@
           <button
             class="btn-play"
             class:selected={todos.activeTaskId === task.id}
-            aria-label={todos.activeTaskId === task.id && pomodoro.running ? 'Pausar pomodoro' : 'Iniciar pomodoro'}
+            aria-label={todos.activeTaskId === task.id && pomodoro.running ? t('pausePomodoro') : t('startPomodoro')}
             onclick={() => toggleTaskTimer(task.id)}
-            title={todos.activeTaskId === task.id && pomodoro.running ? 'Pausar pomodoro' : 'Iniciar pomodoro'}
+            title={todos.activeTaskId === task.id && pomodoro.running ? t('pausePomodoro') : t('startPomodoro')}
           >{todos.activeTaskId === task.id && pomodoro.running ? '⏸' : '▶'}</button>
 
           <button
             class="btn-remove"
-            aria-label="Remover tarefa"
+            aria-label={t('removeTask')}
             onclick={() => todos.removeTask(task.id)}
           >✕</button>
         </li>

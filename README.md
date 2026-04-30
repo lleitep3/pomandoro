@@ -14,6 +14,19 @@ Este projeto foi recentemente reescrito utilizando tecnologias modernas para ser
 - **Testes Unitários**: [Vitest](https://vitest.dev/) (Cobertura > 90%)
 - **Testes E2E**: [Playwright](https://playwright.dev/)
 - **CI/CD**: GitHub Actions e GitHub Pages
+- **Acessibilidade**: Atalhos de teclado (ESC) e navegação lógica.
+
+## ✨ Principais Funcionalidades
+
+- **Cronômetro Pomodoro**: Sessões de foco e pausas customizáveis.
+- **Gestão de Tarefas**: CRUD completo com níveis de prioridade e reordenação.
+- **Persistência Total**: Suas tarefas, configurações e até o estado do timer em execução sobrevivem ao refresh da página.
+- **Design Responsivo**: Interface otimizada para Desktop e dispositivos Mobile.
+- **Internacionalização**: Suporte para Português (PT-BR), Inglês (EN) e Espanhol (ES).
+- **Temas**: Suporte a modo Escuro/Claro com sincronização de preferência do sistema.
+- **Visualização Flexível**: Modo de visão compacta para minimizar distrações.
+- **Histórico de Atividades**: Acompanhamento de todas as sessões concluídas.
+- **Modo Zen**: Interface minimalista focada apenas no timer e na tarefa atual.
 
 ## 📦 Estrutura do Projeto
 

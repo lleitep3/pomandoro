@@ -2,23 +2,25 @@
   import { pomodoro } from '../stores/pomodoro.svelte'
   import { todos } from '../stores/todos.svelte'
   import { history } from '../stores/history.svelte'
+  import { settings } from '../stores/settings.svelte'
   import type { TimerMode } from '../types'
 
   const SIZE = 240
   const STROKE = 12
   const RADIUS = (SIZE - STROKE) / 2
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS
+  const t = settings.t
 
-  const modes: { key: TimerMode; label: string }[] = [
-    { key: 'work', label: 'Foco' },
-    { key: 'short-break', label: 'Pausa' },
-    { key: 'long-break', label: 'Descanso' },
-  ]
+  const modes = $derived([
+    { key: 'work' as TimerMode, label: t('work') },
+    { key: 'short-break' as TimerMode, label: t('shortBreak') },
+    { key: 'long-break' as TimerMode, label: t('longBreak') },
+  ])
 
   const dashoffset = $derived(CIRCUMFERENCE * (1 - pomodoro.progress))
 </script>
 
-<div class="timer-panel">
+<div class="timer-panel" style="--mode-color: var(--accent-{pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'short' : 'long'})">
   <div class="mode-tabs">
     {#each modes as m}
       <button
@@ -31,7 +33,7 @@
     {/each}
   </div>
 
-  <div class="clock-wrap">
+  <div class="clock-wrap" role="timer" aria-live="off" aria-label="{pomodoro.label} {t('min')} - {t(pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'shortBreak' : 'longBreak')}">
     <svg class="clock-svg" viewBox="0 0 {SIZE} {SIZE}">
       <circle
         cx={SIZE / 2}
@@ -46,7 +48,7 @@
         cy={SIZE / 2}
         r={RADIUS}
         fill="none"
-        stroke="var(--accent)"
+        stroke="var(--mode-color)"
         stroke-width={STROKE}
         stroke-linecap="round"
         stroke-dasharray={CIRCUMFERENCE}
@@ -58,14 +60,16 @@
     <div class="clock-label">
       <span class="time">{pomodoro.label}</span>
       {#if todos.activeTask}
-        <span class="active-task">{todos.activeTask.title}</span>
+        <span class="active-task" title={todos.activeTask.title}>{todos.activeTask.title}</span>
+      {:else}
+        <span class="active-task muted">{t('semTarefa')}</span>
       {/if}
     </div>
   </div>
 
   <div class="controls">
     {#if pomodoro.running}
-      <button class="btn btn-secondary" onclick={() => pomodoro.pause()}>Pausar</button>
+      <button class="btn btn-secondary" onclick={() => pomodoro.pause()}>{t('pause')}</button>
     {:else}
       <button class="btn btn-primary" onclick={() => {
         if (todos.activeTask) {
@@ -77,13 +81,13 @@
           })
         }
         pomodoro.start()
-      }}>Iniciar</button>
+      }}>{t('start')}</button>
     {/if}
-    <button class="btn btn-ghost" onclick={() => pomodoro.reset()}>Reiniciar</button>
+    <button class="btn btn-ghost" onclick={() => pomodoro.reset()}>{t('resetTimer')}</button>
   </div>
 
   <p class="pomodoro-count">
-    🍅 {pomodoro.workCount} {pomodoro.workCount === 1 ? 'pomodoro' : 'pomodoros'} hoje
+    🍅 {pomodoro.workCount} {pomodoro.workCount === 1 ? t('pomodoroToday') : t('pomodorosToday')}
   </p>
 </div>
 
@@ -116,7 +120,7 @@
   }
 
   .mode-tab.active {
-    background: var(--accent);
+    background: var(--mode-color);
     color: #fff;
     font-weight: 600;
   }
@@ -178,7 +182,7 @@
   }
 
   .btn-primary {
-    background: var(--accent);
+    background: var(--mode-color);
     color: #fff;
   }
 

@@ -2,11 +2,7 @@ import type { TimerMode } from '../types'
 import { todos } from './todos.svelte'
 import { history } from './history.svelte'
 
-const DURATIONS: Record<TimerMode, number> = {
-  'work': 25 * 60,
-  'short-break': 5 * 60,
-  'long-break': 15 * 60,
-}
+import { settings } from './settings.svelte'
 
 function beep() {
   try {
@@ -25,15 +21,63 @@ function beep() {
   }
 }
 
+const STORAGE_KEY = 'pomandoro-timer-state'
+
+interface TimerState {
+  mode: TimerMode
+  remaining: number
+  running: boolean
+  workCount: number
+  lastUpdate: number
+}
+
 function createPomodoroStore() {
   let mode = $state<TimerMode>('work')
-  let remaining = $state(DURATIONS['work'])
+  let remaining = $state(settings.durations['work'] * 60)
   let running = $state(false)
   let workCount = $state(0)
   let intervalId: ReturnType<typeof setInterval> | null = null
 
-  const total = $derived(DURATIONS[mode])
+  // Persistence
+  function save() {
+    const state: TimerState = {
+      mode,
+      remaining,
+      running,
+      workCount,
+      lastUpdate: Date.now()
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  }
+
+  function load() {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+
+    try {
+      const state: TimerState = JSON.parse(saved)
+      mode = state.mode
+      workCount = state.workCount
+      
+      const elapsed = state.running ? Math.floor((Date.now() - state.lastUpdate) / 1000) : 0
+      remaining = Math.max(0, state.remaining - elapsed)
+      
+      if (state.running && remaining > 0) {
+        start()
+      } else if (state.running && remaining <= 0) {
+        // Timer finished while away
+        remaining = 0
+        beep()
+        onComplete()
+      }
+    } catch (e) {
+      console.error('Failed to load timer state', e)
+    }
+  }
+
+  const total = $derived(settings.durations[mode] * 60)
   const progress = $derived(remaining / total)
+
   const label = $derived(
     Math.floor(remaining / 60).toString().padStart(2, '0') +
     ':' +
@@ -48,6 +92,7 @@ function createPomodoroStore() {
       return
     }
     remaining--
+    save() // Persist every tick
   }
 
   function stop() {
@@ -56,6 +101,7 @@ function createPomodoroStore() {
       intervalId = null
     }
     running = false
+    save()
   }
 
   function onComplete() {
@@ -63,7 +109,7 @@ function createPomodoroStore() {
       taskId: todos.activeTaskId,
       taskTitle: todos.activeTask?.title ?? null,
       mode,
-      duration: DURATIONS[mode]
+      duration: settings.durations[mode] * 60
     })
 
     if (mode === 'work') {
@@ -75,15 +121,29 @@ function createPomodoroStore() {
     } else {
       setMode('work')
     }
+    save()
   }
 
   function setMode(m: TimerMode) {
     stop()
     mode = m
-    remaining = DURATIONS[m]
+    remaining = settings.durations[m] * 60
     if (todos.activeTaskId) {
       todos.updateTimerState(todos.activeTaskId, mode, remaining)
     }
+    save()
+  }
+
+  function start() {
+    if (running && intervalId) return
+    running = true
+    save()
+    intervalId = setInterval(tick, 1000)
+  }
+
+  // Load state on creation
+  if (typeof localStorage !== 'undefined') {
+    setTimeout(load, 0) // Ensure settings and other stores are ready
   }
 
   return {
@@ -95,11 +155,7 @@ function createPomodoroStore() {
     get progress() { return progress },
     get label() { return label },
 
-    start() {
-      if (running) return
-      running = true
-      intervalId = setInterval(tick, 1000)
-    },
+    start,
 
     pause() {
       stop()
@@ -112,14 +168,23 @@ function createPomodoroStore() {
       stop()
       mode = m
       remaining = rem
+      save()
     },
 
     reset() {
       stop()
-      remaining = DURATIONS[mode]
+      remaining = settings.durations[mode] * 60
       if (todos.activeTaskId) {
         todos.updateTimerState(todos.activeTaskId, mode, remaining)
       }
+      save()
+    },
+
+    updateProportionally(oldTotal: number, newTotal: number) {
+      if (oldTotal <= 0) return
+      const ratio = remaining / oldTotal
+      remaining = Math.max(0, Math.round(ratio * newTotal))
+      save()
     },
 
     setMode,
