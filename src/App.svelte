@@ -21,6 +21,16 @@
     document.documentElement.classList.toggle('light-theme', !isDark)
   })
 
+  let lastPomodoroTotal = $state(pomodoro.total)
+
+  $effect(() => {
+    const currentTotal = pomodoro.total
+    if (currentTotal !== lastPomodoroTotal) {
+      pomodoro.updateProportionally(lastPomodoroTotal, currentTotal)
+      lastPomodoroTotal = currentTotal
+    }
+  })
+
   let previousActiveElement: HTMLElement | null = null
 
   function handleGlobalKeydown(e: KeyboardEvent) {

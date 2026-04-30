@@ -30,16 +30,7 @@ function createPomodoroStore() {
 
   const total = $derived(settings.durations[mode] * 60)
   const progress = $derived(remaining / total)
-  let lastTotal = settings.durations[mode] * 60
 
-  $effect(() => {
-    const newTotal = settings.durations[mode] * 60
-    if (newTotal !== lastTotal) {
-      const ratio = remaining / lastTotal
-      remaining = Math.max(0, Math.round(ratio * newTotal))
-      lastTotal = newTotal
-    }
-  })
   const label = $derived(
     Math.floor(remaining / 60).toString().padStart(2, '0') +
     ':' +
@@ -126,6 +117,12 @@ function createPomodoroStore() {
       if (todos.activeTaskId) {
         todos.updateTimerState(todos.activeTaskId, mode, remaining)
       }
+    },
+
+    updateProportionally(oldTotal: number, newTotal: number) {
+      if (oldTotal <= 0) return
+      const ratio = remaining / oldTotal
+      remaining = Math.max(0, Math.round(ratio * newTotal))
     },
 
     setMode,
