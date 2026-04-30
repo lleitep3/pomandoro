@@ -85,16 +85,19 @@ describe('Pomodoro Store Logic', () => {
     expect(pomodoro.remaining).toBe(15 * 60);
   });
 
-  it('handles completion and switches mode', () => {
+  it('handles completion and switches to long break', () => {
+    // Complete 3 times first
+    for(let i=0; i<3; i++) {
+      pomodoro.loadState('work', 1);
+      pomodoro.start();
+      vi.advanceTimersByTime(2000);
+      pomodoro.setMode('work');
+    }
+    // 4th completion
     pomodoro.loadState('work', 1);
     pomodoro.start();
     vi.advanceTimersByTime(2000);
-    expect(pomodoro.mode).toBe('short-break');
-    
-    pomodoro.loadState('short-break', 1);
-    pomodoro.start();
-    vi.advanceTimersByTime(2000);
-    expect(pomodoro.mode).toBe('work');
+    expect(pomodoro.mode).toBe('long-break');
   });
 
   it('updates proportionally', () => {

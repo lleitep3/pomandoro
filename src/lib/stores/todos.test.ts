@@ -120,15 +120,18 @@ describe("Todos Store Logic", () => {
     todos.addTask("   ");
     expect(todos.tasks).toHaveLength(0);
     
-    todos.addTask("Valid");
+    todos.addTask("Valid 1");
+    todos.addTask("Valid 2");
     todos.editTask(todos.tasks[0].id, "   ");
-    expect(todos.tasks[0].title).toBe("Valid");
+    expect(todos.tasks[0].title).toBe("Valid 1");
     
     todos.reorderTasks(-1, 10);
     expect(todos.tasks).toHaveLength(2);
   });
 
   it("handles tasks without timer state in proportional update", () => {
+    todos.addTask("Task 1");
+    todos.addTask("Task 2");
     todos.addTask("No Timer");
     // This task has timerMode undefined by default
     todos.updateAllTasksProportionally(1500, 3000, "work");
