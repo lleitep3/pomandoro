@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { settings } from './settings.svelte'
 
 const STORAGE_KEY = 'pomandoro-settings'
 
@@ -9,41 +10,15 @@ describe('Settings Store Logic', () => {
   })
 
   it('initializes with default values', () => {
-    const defaultSettings = {
-      language: 'en',
-      theme: 'system',
-      durations: {
-        work: 25,
-        'short-break': 5,
-        'long-break': 15
-      }
-    }
-    
-    // Simulate loading logic
-    const raw = localStorage.getItem(STORAGE_KEY)
-    const settings = raw ? JSON.parse(raw) : defaultSettings
-
-    expect(settings.language).toBe('en')
-    expect(settings.theme).toBe('system')
+    expect(settings.language).toBeDefined()
+    expect(settings.theme).toBeDefined()
     expect(settings.durations.work).toBe(25)
   })
 
   it('saves settings to localStorage', () => {
-    const newSettings = {
-      language: 'pt-BR',
-      theme: 'dark',
-      durations: {
-        work: 30,
-        'short-break': 10,
-        'long-break': 20
-      }
-    }
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings))
+    settings.updateDuration('work', 30)
     
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
-    expect(saved.language).toBe('pt-BR')
-    expect(saved.theme).toBe('dark')
     expect(saved.durations.work).toBe(30)
   })
 

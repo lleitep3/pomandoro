@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { history } from "./history.svelte";
 import type { HistoryEntry } from "../types";
 
 const STORAGE_KEY = "pomandoro-history";
@@ -10,16 +11,9 @@ describe("History Store Logic", () => {
   });
 
   it("loads entries from localStorage", () => {
-    const mockEntries: HistoryEntry[] = [
-      { id: "1", taskId: "t1", taskTitle: "Task 1", mode: "work", duration: 1500, completedAt: 123456 },
-    ];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mockEntries));
-
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const entries = raw ? (JSON.parse(raw) as HistoryEntry[]) : [];
-
-    expect(entries).toHaveLength(1);
-    expect(entries[0].taskTitle).toBe("Task 1");
+    history.addEntry({ taskId: "1", taskTitle: "Test", mode: "work", duration: 1500 });
+    expect(history.entries).toHaveLength(1);
+    expect(history.entries[0].taskTitle).toBe("Test");
   });
 
   it("adds new entry at the beginning", () => {

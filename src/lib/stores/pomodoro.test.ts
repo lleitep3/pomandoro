@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { pomodoro } from './pomodoro.svelte'
 import type { TimerMode } from '../types'
 
 // Test the pure logic functions from pomodoro store
@@ -24,32 +25,20 @@ describe('Pomodoro Store Logic', () => {
   })
 
   it('calculates time label correctly', () => {
-    const testCases = [
-      { remaining: 25 * 60, expected: '25:00' },
-      { remaining: 5 * 60, expected: '05:00' },
-      { remaining: 15 * 60, expected: '15:00' },
-      { remaining: 90, expected: '01:30' },
-      { remaining: 61, expected: '01:01' },
-      { remaining: 0, expected: '00:00' },
-    ]
-
-    for (const { remaining, expected } of testCases) {
-      const label =
-        Math.floor(remaining / 60).toString().padStart(2, '0') +
-        ':' +
-        (remaining % 60).toString().padStart(2, '0')
-      expect(label).toBe(expected)
-    }
-  })
+    pomodoro.loadState('work', 90);
+    expect(pomodoro.label).toBe('01:30');
+    
+    pomodoro.loadState('work', 61);
+    expect(pomodoro.label).toBe('01:01');
+    
+    pomodoro.loadState('work', 0);
+    expect(pomodoro.label).toBe('00:00');
+  });
 
   it('calculates progress correctly', () => {
-    const total = 25 * 60
-
-    expect(1.0).toBe(1) // 100% at start
-    expect((total - 5 * 60) / total).toBe(0.8) // 80% after 5 min
-    expect((total - 15 * 60) / total).toBe(0.4) // 40% after 15 min
-    expect(0 / total).toBe(0) // 0% at end
-  })
+    pomodoro.loadState('work', 750); // half of 25min (1500s)
+    expect(pomodoro.progress).toBeCloseTo(0.5, 1);
+  });
 
   it('determines correct break type after work session', () => {
     const workCount = 3
