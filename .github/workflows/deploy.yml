@@ -21,7 +21,24 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      
+      - name: Run Unit Tests with Coverage
+        run: npm run test:coverage
+      
+      - name: Run E2E Tests
+        run: npm run test:e2e
+      
+      - name: Build App
+        run: npm run build
+
+      - name: Prepare Reports
+        run: |
+          mkdir -p dist/reports/coverage
+          mkdir -p dist/reports/e2e
+          cp -r coverage/* dist/reports/coverage/ || true
+          cp -r playwright-report/* dist/reports/e2e/ || true
 
       - uses: peaceiris/actions-gh-pages@v4
         with:
