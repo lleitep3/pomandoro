@@ -20,15 +20,14 @@ describe('TodoList Component', () => {
     expect(screen.getByPlaceholderText('Adicionar tarefa...')).toBeTruthy();
   });
 
-  it('adds a task', async () => {
+  it('adds a task with Enter key', async () => {
     render(TodoList);
     const input = screen.getByPlaceholderText('Adicionar tarefa...');
-    await fireEvent.input(input, { target: { value: 'New Unit Task' } });
-    const addBtn = screen.getByLabelText('Adicionar nova tarefa');
-    await fireEvent.click(addBtn);
+    await fireEvent.input(input, { target: { value: 'Keyboard Task' } });
+    await fireEvent.keyDown(input, { key: 'Enter' });
     
     expect(todos.tasks).toHaveLength(1);
-    expect(todos.tasks[0].title).toBe('New Unit Task');
+    expect(todos.tasks[0].title).toBe('Keyboard Task');
   });
 
   it('toggles task completion', async () => {
@@ -98,17 +97,50 @@ describe('TodoList Component', () => {
     expect(screen.getByDisplayValue('DblClick Me')).toBeTruthy();
   });
 
-  it('handles drag and drop events', async () => {
+  it('cycles new task priority before adding', async () => {
+    render(TodoList);
+    const newPriorityBtn = screen.getByLabelText('Prioridade da nova tarefa');
+    
+    // Default is medium (yellow)
+    expect(newPriorityBtn.classList.contains('medium')).toBe(true);
+    
+    // Click once -> high (red)
+    await fireEvent.click(newPriorityBtn);
+    expect(newPriorityBtn.classList.contains('high')).toBe(true);
+    
+    // Click again -> low (blue)
+    await fireEvent.click(newPriorityBtn);
+    expect(newPriorityBtn.classList.contains('low')).toBe(true);
+  });
+
+  it('handles drag and drop events with dataTransfer', async () => {
     todos.addTask('Task A');
     todos.addTask('Task B');
     render(TodoList);
     const items = screen.getAllByRole('listitem');
     
-    await fireEvent.dragStart(items[0]);
-    await fireEvent.dragOver(items[1]);
-    await fireEvent.drop(items[1]);
+    const dataTransfer = {
+      setData: vi.fn(),
+      effectAllowed: '',
+      dropEffect: ''
+    };
+
+    // Drag Start
+    fireEvent.dragStart(items[0], {
+      dataTransfer: dataTransfer as any
+    });
+    expect(dataTransfer.setData).toHaveBeenCalledWith('text/plain', '0');
     
-    // Check if reorder was triggered (Task B should be first)
+    // Drag Over
+    fireEvent.dragOver(items[1], {
+      dataTransfer: dataTransfer as any
+    });
+    
+    // Drop
+    fireEvent.drop(items[1], {
+      dataTransfer: dataTransfer as any
+    });
+    
     expect(todos.tasks[0].title).toBe('Task B');
   });
 

@@ -29,4 +29,18 @@ describe('App Component', () => {
     const closeBtn = screen.getByLabelText('Fechar');
     await fireEvent.click(closeBtn);
   });
+
+  it('closes modals with Escape key', async () => {
+    render(App);
+    // Open settings
+    const settingsBtn = screen.getByLabelText('Configurações');
+    await fireEvent.click(settingsBtn);
+    expect(screen.getByText('Durações (minutos)')).toBeTruthy();
+    
+    // Press Escape
+    await fireEvent.keyDown(window, { key: 'Escape' });
+    
+    // Modal should be gone (or at least the content)
+    expect(screen.queryByText('Durações (minutos)')).toBeNull();
+  });
 });
