@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { pomodoro } from './pomodoro.svelte'
+import { todos } from './todos.svelte'
 import type { TimerMode } from '../types'
 
 // Test the pure logic functions from pomodoro store
@@ -42,6 +43,17 @@ describe('Pomodoro Store Logic', () => {
   });
 
   it('manages timer lifecycle', () => {
+    // Test without active task
+    todos.selectTask(null);
+    pomodoro.pause();
+    pomodoro.reset();
+    
+    todos.addTask("Active");
+    todos.selectTask(todos.tasks[0].id);
+    
+    pomodoro.start();
+    expect(pomodoro.running).toBe(true);
+    // Double start
     pomodoro.start();
     expect(pomodoro.running).toBe(true);
     
@@ -50,9 +62,17 @@ describe('Pomodoro Store Logic', () => {
     
     pomodoro.pause();
     expect(pomodoro.running).toBe(false);
+    // Verify task state was updated
+    expect(todos.tasks[0].timerRemaining).toBe(pomodoro.remaining);
     
     pomodoro.reset();
     expect(pomodoro.remaining).toBe(pomodoro.total);
+    expect(todos.tasks[0].timerRemaining).toBe(pomodoro.total);
+  });
+
+  it('exposes workCount and total', () => {
+    expect(pomodoro.workCount).toBeDefined();
+    expect(pomodoro.total).toBeDefined();
   });
 
   it('switches modes', () => {
@@ -65,11 +85,34 @@ describe('Pomodoro Store Logic', () => {
     expect(pomodoro.remaining).toBe(15 * 60);
   });
 
-  it('handles completion', () => {
+  it('handles completion and switches to long break', () => {
+    // Complete 3 times first
+    for(let i=0; i<3; i++) {
+      pomodoro.loadState('work', 1);
+      pomodoro.start();
+      vi.advanceTimersByTime(2000);
+      pomodoro.setMode('work');
+    }
+    // 4th completion
     pomodoro.loadState('work', 1);
     pomodoro.start();
     vi.advanceTimersByTime(2000);
-    // After 2s (one to hit 0, one to trigger onComplete), it should switch to break
-    expect(pomodoro.mode).toBe('short-break');
+    expect(pomodoro.mode).toBe('long-break');
+  });
+
+  it('updates proportionally', () => {
+    pomodoro.loadState('work', 1500);
+    pomodoro.updateProportionally(1500, 3000);
+    expect(pomodoro.remaining).toBe(3000);
+    
+    // Test with 0 old total
+    pomodoro.updateProportionally(0, 3000);
+    expect(pomodoro.remaining).toBe(3000);
+  });
+
+  it('loads and stops', () => {
+    pomodoro.load();
+    pomodoro.setMode('work');
+    expect(pomodoro.mode).toBe('work');
   });
 });
