@@ -2,19 +2,26 @@
   import PomodoroTimer from './lib/components/PomodoroTimer.svelte'
   import TodoList from './lib/components/TodoList.svelte'
   import HistoryList from './lib/components/HistoryList.svelte'
+  import SettingsModal from './lib/components/SettingsModal.svelte'
   import { pomodoro } from './lib/stores/pomodoro.svelte'
   import { todos } from './lib/stores/todos.svelte'
+  import { settings } from './lib/stores/settings.svelte'
   import logo from './assets/icon.svg'
 
   let scrollY = $state(0)
   let zenMode = $state(false)
   let showHistory = $state(false)
+  let showSettings = $state(false)
 
-  const modeLabels = {
-    'work': 'Foco',
-    'short-break': 'Pausa Curta',
-    'long-break': 'Pausa Longa'
-  }
+  const t = settings.t
+
+  $effect(() => {
+    const isDark = settings.theme === 'dark' || 
+      (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.classList.toggle('light-theme', !isDark)
+  })
+
+
 </script>
 
 <svelte:window bind:scrollY />
@@ -34,7 +41,7 @@
           >
             <div class="mini-timer-content">
               <span class="mini-time">{pomodoro.label}</span>
-              <span class="mini-mode">{modeLabels[pomodoro.mode]}</span>
+              <span class="mini-mode">{t(pomodoro.mode === 'work' ? 'work' : pomodoro.mode === 'short-break' ? 'shortBreak' : 'longBreak')}</span>
             </div>
           </div>
           {#if todos.activeTask}
@@ -43,8 +50,14 @@
         </div>
       {:else}
         <div class="nav-actions">
-          <button class="nav-btn" onclick={() => showHistory = true}>Histórico</button>
-          <button class="nav-btn" onclick={() => zenMode = true}>Zen Mode</button>
+          <button class="nav-btn" onclick={() => showHistory = true}>{t('history')}</button>
+          <button class="nav-btn" onclick={() => zenMode = true}>{t('zenMode')}</button>
+          <button class="nav-btn gear-btn" onclick={() => showSettings = true} aria-label={t('settings')}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
         </div>
       {/if}
     </div>
@@ -71,7 +84,7 @@
   </footer>
 {:else}
   <main class="zen-layout">
-    <button class="btn-exit-zen" onclick={() => zenMode = false}>Sair do Modo Zen</button>
+    <button class="btn-exit-zen" onclick={() => zenMode = false}>{t('exitZen')}</button>
     <PomodoroTimer />
   </main>
 {/if}
@@ -81,8 +94,19 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal-backdrop" onclick={() => showHistory = false}>
     <div class="modal-content" onclick={(e) => e.stopPropagation()}>
-      <button class="btn-close-modal" onclick={() => showHistory = false}>✕</button>
+      <button class="btn-close-modal" onclick={() => showHistory = false} aria-label={t('close')}>✕</button>
       <HistoryList />
+    </div>
+  </div>
+{/if}
+
+{#if showSettings}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="modal-backdrop" onclick={() => showSettings = false}>
+    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+      <button class="btn-close-modal" onclick={() => showSettings = false} aria-label={t('close')}>✕</button>
+      <SettingsModal />
     </div>
   </div>
 {/if}
@@ -101,6 +125,17 @@
     --border: #2a2a4a;
     --text: #eaeaea;
     --text-muted: #888;
+  }
+
+  :global(.light-theme) {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface-hover: #edf2f7;
+    --accent: #e94560;
+    --track: #e2e8f0;
+    --border: #e2e8f0;
+    --text: #2d3748;
+    --text-muted: #718096;
   }
 
   :global(body) {
@@ -245,6 +280,13 @@
   .nav-btn:hover {
     background: var(--accent);
     color: #fff;
+  }
+
+  .gear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
   }
 
   .zen-layout {

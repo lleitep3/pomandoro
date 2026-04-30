@@ -2,17 +2,19 @@
   import { pomodoro } from '../stores/pomodoro.svelte'
   import { todos } from '../stores/todos.svelte'
   import { history } from '../stores/history.svelte'
+  import { settings } from '../stores/settings.svelte'
   import type { TimerMode } from '../types'
 
   const SIZE = 240
   const STROKE = 12
   const RADIUS = (SIZE - STROKE) / 2
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS
+  const t = settings.t
 
   const modes: { key: TimerMode; label: string }[] = [
-    { key: 'work', label: 'Foco' },
-    { key: 'short-break', label: 'Pausa' },
-    { key: 'long-break', label: 'Descanso' },
+    { key: 'work', label: t('work') },
+    { key: 'short-break', label: t('shortBreak') },
+    { key: 'long-break', label: t('longBreak') },
   ]
 
   const dashoffset = $derived(CIRCUMFERENCE * (1 - pomodoro.progress))
@@ -58,14 +60,16 @@
     <div class="clock-label">
       <span class="time">{pomodoro.label}</span>
       {#if todos.activeTask}
-        <span class="active-task">{todos.activeTask.title}</span>
+        <span class="active-task" title={todos.activeTask.title}>{todos.activeTask.title}</span>
+      {:else}
+        <span class="active-task muted">{t('semTarefa')}</span>
       {/if}
     </div>
   </div>
 
   <div class="controls">
     {#if pomodoro.running}
-      <button class="btn btn-secondary" onclick={() => pomodoro.pause()}>Pausar</button>
+      <button class="btn btn-secondary" onclick={() => pomodoro.pause()}>{t('pause')}</button>
     {:else}
       <button class="btn btn-primary" onclick={() => {
         if (todos.activeTask) {
@@ -77,13 +81,13 @@
           })
         }
         pomodoro.start()
-      }}>Iniciar</button>
+      }}>{t('start')}</button>
     {/if}
-    <button class="btn btn-ghost" onclick={() => pomodoro.reset()}>Reiniciar</button>
+    <button class="btn btn-ghost" onclick={() => pomodoro.reset()}>{t('resetTimer')}</button>
   </div>
 
   <p class="pomodoro-count">
-    🍅 {pomodoro.workCount} {pomodoro.workCount === 1 ? 'pomodoro' : 'pomodoros'} hoje
+    🍅 {pomodoro.workCount} {t('pomodorosToday')}
   </p>
 </div>
 

@@ -1,5 +1,7 @@
 <script lang="ts">
   import { history } from '../stores/history.svelte'
+  import { settings } from '../stores/settings.svelte'
+  import type { TimerMode } from '../types'
 
   function formatTime(ms: number) {
     return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -9,42 +11,45 @@
     return new Date(ms).toLocaleDateString()
   }
 
-  function getModeLabel(mode: string) {
-    if (mode === 'work') return 'Foco'
-    if (mode === 'short-break') return 'Pausa Curta'
-    return 'Pausa Longa'
+  const t = settings.t
+
+  function getModeLabel(mode: TimerMode) {
+    if (mode === 'work') return t('work')
+    if (mode === 'short-break') return t('shortBreak')
+    if (mode === 'long-break') return t('longBreak')
+    return mode
   }
 </script>
 
 <div class="history-panel">
   <div class="history-header">
-    <h2 class="history-heading">Histórico</h2>
+    <h2 class="history-heading">{t('historyTitle')}</h2>
     {#if history.entries.length > 0}
-      <button class="btn-clear" onclick={() => history.clearHistory()}>Limpar</button>
+      <button class="btn-clear" onclick={() => history.clearHistory()}>{t('clearHistory')}</button>
     {/if}
   </div>
 
   {#if history.entries.length === 0}
-    <p class="empty">Nenhuma sessão registrada ainda.</p>
+    <p class="empty">{t('emptyHistory')}</p>
   {:else}
     <ul class="history-list">
       {#each history.entries as entry (entry.id)}
         <li class="history-item" class:play-event={entry.type === 'play'}>
           <div class="history-main">
             {#if entry.type === 'play'}
-              <span class="mode-badge play">▶ Início</span>
+              <span class="mode-badge play">▶ {t('sessionStart')}</span>
             {:else}
               <span class="mode-badge" class:work={entry.mode === 'work'}>
                 {getModeLabel(entry.mode)}
               </span>
             {/if}
             <span class="task-title">
-              {entry.taskTitle || 'Sem tarefa selecionada'}
+              {entry.taskTitle || t('semTarefa')}
             </span>
           </div>
           <div class="history-meta">
             {#if entry.type !== 'play'}
-              <span>{Math.round((entry.duration || 0) / 60)} min</span>
+              <span>{Math.round((entry.duration || 0) / 60)} {t('min')}</span>
               <span class="dot">•</span>
             {/if}
             <span>{formatDate(entry.completedAt)} {formatTime(entry.completedAt)}</span>

@@ -2,11 +2,7 @@ import type { TimerMode } from '../types'
 import { todos } from './todos.svelte'
 import { history } from './history.svelte'
 
-const DURATIONS: Record<TimerMode, number> = {
-  'work': 25 * 60,
-  'short-break': 5 * 60,
-  'long-break': 15 * 60,
-}
+import { settings } from './settings.svelte'
 
 function beep() {
   try {
@@ -27,12 +23,12 @@ function beep() {
 
 function createPomodoroStore() {
   let mode = $state<TimerMode>('work')
-  let remaining = $state(DURATIONS['work'])
+  let remaining = $state(settings.durations['work'] * 60)
   let running = $state(false)
   let workCount = $state(0)
   let intervalId: ReturnType<typeof setInterval> | null = null
 
-  const total = $derived(DURATIONS[mode])
+  const total = $derived(settings.durations[mode] * 60)
   const progress = $derived(remaining / total)
   const label = $derived(
     Math.floor(remaining / 60).toString().padStart(2, '0') +
@@ -63,7 +59,7 @@ function createPomodoroStore() {
       taskId: todos.activeTaskId,
       taskTitle: todos.activeTask?.title ?? null,
       mode,
-      duration: DURATIONS[mode]
+      duration: settings.durations[mode] * 60
     })
 
     if (mode === 'work') {
@@ -80,7 +76,7 @@ function createPomodoroStore() {
   function setMode(m: TimerMode) {
     stop()
     mode = m
-    remaining = DURATIONS[m]
+    remaining = settings.durations[m] * 60
     if (todos.activeTaskId) {
       todos.updateTimerState(todos.activeTaskId, mode, remaining)
     }
@@ -116,7 +112,7 @@ function createPomodoroStore() {
 
     reset() {
       stop()
-      remaining = DURATIONS[mode]
+      remaining = settings.durations[mode] * 60
       if (todos.activeTaskId) {
         todos.updateTimerState(todos.activeTaskId, mode, remaining)
       }
