@@ -82,4 +82,56 @@ describe("Todos Store Logic", () => {
     expect(todos.tasks[0].title).toBe("Task 2");
   });
 
+  it("selects task and updates timer state", () => {
+    todos.addTask("Task 1");
+    const id = todos.tasks[0].id;
+    todos.selectTask(id);
+    todos.updateTimerState(id, "short-break", 300);
+    expect(todos.tasks[0].timerMode).toBe("short-break");
+    expect(todos.tasks[0].timerRemaining).toBe(300);
+  });
+
+  it("sets priority", () => {
+    todos.addTask("Priority Task");
+    const id = todos.tasks[0].id;
+    todos.setPriority(id, "high");
+    expect(todos.tasks[0].priority).toBe("high");
+  });
+
+  it("updates all tasks proportionally", () => {
+    todos.addTask("Proportional Task");
+    const id = todos.tasks[0].id;
+    todos.updateTimerState(id, "work", 1500);
+    
+    // Add another task that shouldn't be updated (wrong mode)
+    todos.addTask("Other Task");
+    todos.updateTimerState(todos.tasks[1].id, "short-break", 300);
+    
+    todos.updateAllTasksProportionally(1500, 3000, "work");
+    expect(todos.tasks[0].timerRemaining).toBe(3000);
+    expect(todos.tasks[1].timerRemaining).toBe(300);
+    
+    // Cover early return
+    todos.updateAllTasksProportionally(0, 3000, "work");
+    expect(todos.tasks[0].timerRemaining).toBe(3000);
+  });
+
+  it("handles empty titles and invalid indices", () => {
+    todos.addTask("   ");
+    expect(todos.tasks).toHaveLength(0);
+    
+    todos.addTask("Valid");
+    todos.editTask(todos.tasks[0].id, "   ");
+    expect(todos.tasks[0].title).toBe("Valid");
+    
+    todos.reorderTasks(-1, 10);
+    expect(todos.tasks).toHaveLength(2);
+  });
+
+  it("handles tasks without timer state in proportional update", () => {
+    todos.addTask("No Timer");
+    // This task has timerMode undefined by default
+    todos.updateAllTasksProportionally(1500, 3000, "work");
+    expect(todos.tasks[2].timerRemaining).toBeUndefined();
+  });
 });

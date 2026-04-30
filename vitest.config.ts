@@ -19,16 +19,25 @@ export default defineConfig({
         "src/**/test-setup.ts",
         "src/main.ts",
         "src/env.d.ts",
-        "src/**/*.svelte",
         "**/node_modules/**",
         "**/dist/**",
         "**/*.d.ts",
       ],
       thresholds: {
-        statements: 90,
-        branches: 90,
-        functions: 90,
-        lines: 90,
+        // Strict threshold for core logic
+        "src/lib/stores/**/*.ts": {
+          statements: 90,
+          branches: 90,
+          functions: 90,
+          lines: 90,
+        },
+        // Show components in report but don't block CI yet
+        "src/**/*.svelte": {
+          statements: 0,
+          branches: 0,
+          functions: 0,
+          lines: 0,
+        },
       },
     },
   },

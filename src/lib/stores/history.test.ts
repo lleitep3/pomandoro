@@ -16,6 +16,12 @@ describe("History Store Logic", () => {
     expect(history.entries[0].taskTitle).toBe("Test");
   });
 
+  it("clears history", () => {
+    history.addEntry({ taskId: "1", taskTitle: "Test", mode: "work", duration: 1500 });
+    history.clearHistory();
+    expect(history.entries).toHaveLength(0);
+  });
+
   it("adds new entry at the beginning", () => {
     let entries: HistoryEntry[] = [
       { id: "1", taskId: "t1", taskTitle: "Task 1", mode: "work", duration: 1500, completedAt: 123456 },

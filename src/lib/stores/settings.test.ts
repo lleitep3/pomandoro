@@ -22,6 +22,24 @@ describe('Settings Store Logic', () => {
     expect(saved.durations.work).toBe(30)
   })
 
+  it("resets settings", () => {
+    settings.updateDuration('work', 30);
+    settings.reset();
+    expect(settings.durations.work).toBe(25);
+  });
+
+  it("changes language and theme", () => {
+    settings.language = 'en';
+    expect(settings.language).toBe('en');
+    settings.theme = 'light';
+    expect(settings.theme).toBe('light');
+  });
+
+  it("translates keys", () => {
+    settings.language = 'pt-BR';
+    expect(settings.t('work')).toBe('Foco');
+  });
+
   it('detects browser language correctly', () => {
     // Mock navigator.language
     const spy = vi.spyOn(navigator, 'language', 'get')
