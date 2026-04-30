@@ -111,6 +111,11 @@ function createTodosStore() {
       activeTaskId = null
       save(tasks)
       saveActiveTaskId(null)
+    },
+
+    load() {
+      tasks = loadFromStorage()
+      activeTaskId = loadActiveTaskId()
     }
   }
 }
