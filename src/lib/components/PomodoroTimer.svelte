@@ -1,6 +1,7 @@
 <script lang="ts">
   import { pomodoro } from '../stores/pomodoro.svelte'
   import { todos } from '../stores/todos.svelte'
+  import { history } from '../stores/history.svelte'
   import type { TimerMode } from '../types'
 
   const SIZE = 240
@@ -31,7 +32,7 @@
   </div>
 
   <div class="clock-wrap">
-    <svg width={SIZE} height={SIZE} viewBox="0 0 {SIZE} {SIZE}">
+    <svg class="clock-svg" viewBox="0 0 {SIZE} {SIZE}">
       <circle
         cx={SIZE / 2}
         cy={SIZE / 2}
@@ -66,7 +67,17 @@
     {#if pomodoro.running}
       <button class="btn btn-secondary" onclick={() => pomodoro.pause()}>Pausar</button>
     {:else}
-      <button class="btn btn-primary" onclick={() => pomodoro.start()}>Iniciar</button>
+      <button class="btn btn-primary" onclick={() => {
+        if (todos.activeTask) {
+          history.addEntry({
+            taskId: todos.activeTask.id,
+            taskTitle: todos.activeTask.title,
+            mode: pomodoro.mode,
+            type: 'play'
+          })
+        }
+        pomodoro.start()
+      }}>Iniciar</button>
     {/if}
     <button class="btn btn-ghost" onclick={() => pomodoro.reset()}>Reiniciar</button>
   </div>
@@ -115,6 +126,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .clock-svg {
+    width: 240px;
+    height: 240px;
+    max-width: 100%;
   }
 
   .clock-label {
@@ -183,5 +200,19 @@
     font-size: 0.85rem;
     color: var(--text-muted);
     margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .timer-panel {
+      padding: 1rem;
+      gap: 1rem;
+    }
+    .clock-svg {
+      width: 200px;
+      height: 200px;
+    }
+    .time {
+      font-size: 2.5rem;
+    }
   }
 </style>

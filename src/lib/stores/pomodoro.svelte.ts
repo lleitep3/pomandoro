@@ -1,5 +1,6 @@
 import type { TimerMode } from '../types'
 import { todos } from './todos.svelte'
+import { history } from './history.svelte'
 
 const DURATIONS: Record<TimerMode, number> = {
   'work': 25 * 60,
@@ -58,6 +59,13 @@ function createPomodoroStore() {
   }
 
   function onComplete() {
+    history.addEntry({
+      taskId: todos.activeTaskId,
+      taskTitle: todos.activeTask?.title ?? null,
+      mode,
+      duration: DURATIONS[mode]
+    })
+
     if (mode === 'work') {
       workCount++
       if (todos.activeTaskId) {
@@ -73,6 +81,9 @@ function createPomodoroStore() {
     stop()
     mode = m
     remaining = DURATIONS[m]
+    if (todos.activeTaskId) {
+      todos.updateTimerState(todos.activeTaskId, mode, remaining)
+    }
   }
 
   return {
@@ -92,11 +103,23 @@ function createPomodoroStore() {
 
     pause() {
       stop()
+      if (todos.activeTaskId) {
+        todos.updateTimerState(todos.activeTaskId, mode, remaining)
+      }
+    },
+
+    loadState(m: TimerMode, rem: number) {
+      stop()
+      mode = m
+      remaining = rem
     },
 
     reset() {
       stop()
       remaining = DURATIONS[mode]
+      if (todos.activeTaskId) {
+        todos.updateTimerState(todos.activeTaskId, mode, remaining)
+      }
     },
 
     setMode,
