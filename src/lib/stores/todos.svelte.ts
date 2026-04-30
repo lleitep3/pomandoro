@@ -104,6 +104,18 @@ function createTodosStore() {
         return t
       })
       save(tasks)
+    },
+
+    clear() {
+      tasks = []
+      activeTaskId = null
+      save(tasks)
+      saveActiveTaskId(null)
+    },
+
+    load() {
+      tasks = loadFromStorage()
+      activeTaskId = loadActiveTaskId()
     }
   }
 }

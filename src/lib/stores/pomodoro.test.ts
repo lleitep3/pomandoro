@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { pomodoro } from './pomodoro.svelte'
 import type { TimerMode } from '../types'
 
 // Test the pure logic functions from pomodoro store
@@ -11,6 +12,7 @@ const DURATIONS: Record<TimerMode, number> = {
 describe('Pomodoro Store Logic', () => {
   beforeEach(() => {
     vi.useFakeTimers()
+    pomodoro.reset()
   })
 
   afterEach(() => {
@@ -24,93 +26,50 @@ describe('Pomodoro Store Logic', () => {
   })
 
   it('calculates time label correctly', () => {
-    const testCases = [
-      { remaining: 25 * 60, expected: '25:00' },
-      { remaining: 5 * 60, expected: '05:00' },
-      { remaining: 15 * 60, expected: '15:00' },
-      { remaining: 90, expected: '01:30' },
-      { remaining: 61, expected: '01:01' },
-      { remaining: 0, expected: '00:00' },
-    ]
-
-    for (const { remaining, expected } of testCases) {
-      const label =
-        Math.floor(remaining / 60).toString().padStart(2, '0') +
-        ':' +
-        (remaining % 60).toString().padStart(2, '0')
-      expect(label).toBe(expected)
-    }
-  })
+    pomodoro.loadState('work', 90);
+    expect(pomodoro.label).toBe('01:30');
+    
+    pomodoro.loadState('work', 61);
+    expect(pomodoro.label).toBe('01:01');
+    
+    pomodoro.loadState('work', 0);
+    expect(pomodoro.label).toBe('00:00');
+  });
 
   it('calculates progress correctly', () => {
-    const total = 25 * 60
+    pomodoro.loadState('work', 750); // half of 25min (1500s)
+    expect(pomodoro.progress).toBeCloseTo(0.5, 1);
+  });
 
-    expect(1.0).toBe(1) // 100% at start
-    expect((total - 5 * 60) / total).toBe(0.8) // 80% after 5 min
-    expect((total - 15 * 60) / total).toBe(0.4) // 40% after 15 min
-    expect(0 / total).toBe(0) // 0% at end
-  })
-
-  it('determines correct break type after work session', () => {
-    const workCount = 3
-    const nextMode = workCount % 4 === 0 ? 'long-break' : 'short-break'
-    expect(nextMode).toBe('short-break')
-
-    const workCountLong = 4
-    const nextModeLong = workCountLong % 4 === 0 ? 'long-break' : 'short-break'
-    expect(nextModeLong).toBe('long-break')
-  })
-
-  it('counts down correctly', () => {
-    let remaining = 25 * 60
-
-    const tick = () => {
-      if (remaining > 0) {
-        remaining--
-      }
-    }
-
-    tick()
-    expect(remaining).toBe(25 * 60 - 1)
-
-    tick()
-    expect(remaining).toBe(25 * 60 - 2)
-  })
-
-  it('stops when reaching zero', () => {
-    let remaining = 2
-    let running = true
-
-    const tick = () => {
-      if (remaining <= 0) {
-        running = false
-        return
-      }
-      remaining--
-    }
-
-    tick()
-    expect(remaining).toBe(1)
-    expect(running).toBe(true)
-
-    tick()
-    expect(remaining).toBe(0)
-    expect(running).toBe(true)
-
-    tick()
-    expect(running).toBe(false)
-  })
-
-  it('updates remaining time proportionally when total changes', () => {
-    let lastTotal = 25 * 60
-    let remaining = 12.5 * 60 // 50%
+  it('manages timer lifecycle', () => {
+    pomodoro.start();
+    expect(pomodoro.running).toBe(true);
     
-    const newTotal = 30 * 60
-    if (newTotal !== lastTotal) {
-      const ratio = remaining / lastTotal
-      remaining = Math.round(ratio * newTotal)
-    }
+    vi.advanceTimersByTime(1000);
+    expect(pomodoro.remaining).toBe(pomodoro.total - 1);
     
-    expect(remaining).toBe(15 * 60) // 50% of 30min
-  })
-})
+    pomodoro.pause();
+    expect(pomodoro.running).toBe(false);
+    
+    pomodoro.reset();
+    expect(pomodoro.remaining).toBe(pomodoro.total);
+  });
+
+  it('switches modes', () => {
+    pomodoro.setMode('short-break');
+    expect(pomodoro.mode).toBe('short-break');
+    expect(pomodoro.remaining).toBe(5 * 60);
+    
+    pomodoro.setMode('long-break');
+    expect(pomodoro.mode).toBe('long-break');
+    expect(pomodoro.remaining).toBe(15 * 60);
+  });
+
+  it('handles completion', () => {
+    pomodoro.loadState('work', 1);
+    pomodoro.start();
+    vi.advanceTimersByTime(2000);
+    // After 2s (one to hit 0, one to trigger onComplete), it should switch to break
+    expect(pomodoro.mode).toBe('short-break');
+  });
+});

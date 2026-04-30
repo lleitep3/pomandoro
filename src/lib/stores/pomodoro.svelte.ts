@@ -188,6 +188,10 @@ function createPomodoroStore() {
     },
 
     setMode,
+
+    load() {
+      load()
+    }
   }
 }
 
