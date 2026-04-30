@@ -21,10 +21,15 @@
     document.documentElement.classList.toggle('light-theme', !isDark)
   })
 
-
+  function handleGlobalKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      showHistory = false
+      showSettings = false
+    }
+  }
 </script>
 
-<svelte:window bind:scrollY />
+<svelte:window bind:scrollY onkeydown={handleGlobalKeydown} />
 
 {#if !zenMode}
   <header class="navbar">
