@@ -1,6 +1,5 @@
 <script lang="ts">
   import { settings } from '../stores/settings.svelte'
-  import { pomodoro } from '../stores/pomodoro.svelte'
 
   const t = settings.t
 </script>
@@ -74,7 +73,6 @@
     <div class="settings-footer">
       <button class="btn-reset" onclick={() => {
         settings.reset()
-        pomodoro.reset()
       }}>
         {t('reset')}
       </button>

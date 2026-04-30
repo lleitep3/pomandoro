@@ -100,4 +100,17 @@ describe('Pomodoro Store Logic', () => {
     tick()
     expect(running).toBe(false)
   })
+
+  it('updates remaining time proportionally when total changes', () => {
+    let lastTotal = 25 * 60
+    let remaining = 12.5 * 60 // 50%
+    
+    const newTotal = 30 * 60
+    if (newTotal !== lastTotal) {
+      const ratio = remaining / lastTotal
+      remaining = Math.round(ratio * newTotal)
+    }
+    
+    expect(remaining).toBe(15 * 60) // 50% of 30min
+  })
 })
